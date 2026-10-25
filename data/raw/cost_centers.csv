@@ -1,0 +1,16 @@
+cost_center_id,cost_center_name,country,entity,status
+CC001,Singapore SPD Operations,Singapore,SPD,Active
+CC002,Singapore QTS Operations,Singapore,QTS,Active
+CC003,Singapore QTG Operations,Singapore,QTG,Active
+CC004,Kuala Lumpur SPD Operations,Malaysia,SPD,Active
+CC005,Kuala Lumpur QTS Operations,Malaysia,QTS,Active
+CC006,Kuala Lumpur QTG Operations,Malaysia,QTG,Active
+CC007,Bangkok SPD Operations,Thailand,SPD,Active
+CC008,Bangkok QTS Operations,Thailand,QTS,Active
+CC009,Bangkok QTG Operations,Thailand,QTG,Active
+CC010,Jakarta SPD Operations,Indonesia,SPD,Active
+CC011,Jakarta QTS Operations,Indonesia,QTS,Active
+CC012,Jakarta QTG Operations,Indonesia,QTG,Active
+CC013,Ho Chi Minh City SPD Operations,Vietnam,SPD,Active
+CC014,Ho Chi Minh City QTS Operations,Vietnam,QTS,Active
+CC015,Ho Chi Minh City QTG Operations,Vietnam,QTG,Active

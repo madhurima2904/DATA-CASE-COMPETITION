@@ -1,0 +1,14 @@
+item_id,item_name,product_group,category,unit,regulatory_status,active_status
+I001,A - Diagnostic Reagent 1,Product A,Diagnostic reagent,units,Approved,Active
+I002,A - Diagnostic Reagent 2,Product A,Diagnostic reagent,units,Approved,Active
+I003,A - Diagnostic Reagent 3,Product A,Diagnostic reagent,units,Approved,Active
+I004,B - Lab Consumable 1,Product B,Laboratory consumable,units,Approved,Active
+I005,B - Lab Consumable 2,Product B,Laboratory consumable,units,Approved,Active
+I006,B - Lab Consumable 3,Product B,Laboratory consumable,units,Approved,Active
+I007,C - Diagnostic Device 1,Product C,Diagnostic equipment,units,Approved,Active
+I008,C - Diagnostic Device 2,Product C,Diagnostic equipment,units,Approved,Active
+I009,C - Diagnostic Device 3,Product C,Diagnostic equipment,units,Approved,Active
+I010,B - Consumable Sample 4,Product B,Laboratory consumable,units,Pending,Inactive
+I011,A - Diag. Reagent 2,Product A,Diagnostic reagent,units,Approved,Active
+I012,B - Laboratory Consumable 01,Product B,Laboratory consumable,units,Approved,Active
+I013,C - Diagnostic Device 03,Product C,Diagnostic equipment,units,Approved,Active

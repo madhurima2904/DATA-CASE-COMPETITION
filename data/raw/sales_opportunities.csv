@@ -1,0 +1,35 @@
+customer_id,customer_name,country,current_product,other_products_not_purchased,opportunity_type,rationale
+C046,Jakarta General Hospital 01,Indonesia,Product C,None - buys all 3 products,Win-back,No confirmed Product C order since 2026-03 (had 200 units over 3 active months).
+C054,Jakarta Medical Institute 09,Indonesia,Product A,None - buys all 3 products,Win-back,No confirmed Product A order since 2026-02 (had 146 units over 2 active months).
+C058,Jakarta Diagnostic Centre 13,Indonesia,Product B,None - buys all 3 products,Win-back,No confirmed Product B order since 2025-12 (had 50 units over 1 active month).
+C058,Jakarta Diagnostic Centre 13,Indonesia,Product C,None - buys all 3 products,Win-back,No confirmed Product C order since 2025-12 (had 111 units over 2 active months).
+C020,Kuala Lumpur Community Hospital 05,Malaysia,Product A,None - buys all 3 products,Win-back,No confirmed Product A order since 2025-12 (had 62 units over 1 active month).
+C022,Kuala Lumpur Pathology Centre 07,Malaysia,Product C,None - buys all 3 products,Win-back,No confirmed Product C order since 2026-01 (had 37 units over 1 active month).
+C023,Kuala Lumpur University Hospital 08,Malaysia,Product A,None - buys all 3 products,Win-back,No confirmed Product A order since 2026-01 (had 39 units over 1 active month).
+C026,Kuala Lumpur Healthcare Group 11,Malaysia,Product A,None - buys all 3 products,Win-back,No confirmed Product A order since 2026-02 (had 77 units over 1 active month).
+C029,Kuala Lumpur Clinical Laboratory 14,Malaysia,Product B,None - buys all 3 products,Win-back,No confirmed Product B order since 2026-02 (had 170 units over 4 active months).
+C039,Bangkok Medical Institute 09,Thailand,Product A,None - buys all 3 products,Win-back,No confirmed Product A order since 2026-01 (had 158 units over 3 active months).
+C039,Bangkok Medical Institute 09,Thailand,Product B,None - buys all 3 products,Win-back,No confirmed Product B order since 2026-03 (had 198 units over 3 active months).
+C044,Bangkok Clinical Laboratory 14,Thailand,Product A,None - buys all 3 products,Win-back,No confirmed Product A order since 2025-12 (had 80 units over 2 active months).
+C066,Ho Chi Minh City Health Network 06,Vietnam,Product C,None - buys all 3 products,Win-back,No confirmed Product C order since 2026-02 (had 445 units over 4 active months).
+C067,Ho Chi Minh City Pathology Centre 07,Vietnam,Product B,None - buys all 3 products,Win-back,No confirmed Product B order since 2026-03 (had 111 units over 2 active months).
+C075,Ho Chi Minh City Health Services 15,Vietnam,Product C,None - buys all 3 products,Win-back,No confirmed Product C order since 2026-02 (had 287 units over 3 active months).
+C046,Jakarta General Hospital 01,Indonesia,Product B,None - buys all 3 products,Under-penetrated product,Buys 102 units of Product B vs the Indonesia median of 289 (35% of peer level).
+C052,Jakarta Pathology Centre 07,Indonesia,Product B,None - buys all 3 products,Under-penetrated product,Buys 34 units of Product B vs the Indonesia median of 289 (12% of peer level).
+C020,Kuala Lumpur Community Hospital 05,Malaysia,Product C,None - buys all 3 products,Under-penetrated product,Buys 56 units of Product C vs the Malaysia median of 188 (30% of peer level).
+C013,Singapore Diagnostic Centre 13,Singapore,Product C,None - buys all 3 products,Under-penetrated product,Buys 41 units of Product C vs the Singapore median of 265 (15% of peer level).
+C013,Singapore Diagnostic Centre 13,Singapore,Product A,None - buys all 3 products,Under-penetrated product,Buys 70 units of Product A vs the Singapore median of 201 (35% of peer level).
+C014,Singapore Clinical Laboratory 14,Singapore,Product C,None - buys all 3 products,Under-penetrated product,Buys 102 units of Product C vs the Singapore median of 265 (38% of peer level).
+C031,Bangkok General Hospital 01,Thailand,Product C,None - buys all 3 products,Under-penetrated product,Buys 109 units of Product C vs the Thailand median of 309 (35% of peer level).
+C032,Bangkok Medical Centre 02,Thailand,Product A,None - buys all 3 products,Under-penetrated product,Buys 91 units of Product A vs the Thailand median of 269 (34% of peer level).
+C037,Bangkok Pathology Centre 07,Thailand,Product C,None - buys all 3 products,Under-penetrated product,Buys 113 units of Product C vs the Thailand median of 309 (37% of peer level).
+C068,Ho Chi Minh City University Hospital 08,Vietnam,Product C,None - buys all 3 products,Under-penetrated product,Buys 86 units of Product C vs the Vietnam median of 345 (25% of peer level).
+C073,Ho Chi Minh City Diagnostic Centre 13,Vietnam,Product C,None - buys all 3 products,Under-penetrated product,Buys 100 units of Product C vs the Vietnam median of 345 (29% of peer level).
+C074,Ho Chi Minh City Clinical Laboratory 14,Vietnam,Product B,None - buys all 3 products,Under-penetrated product,Buys 114 units of Product B vs the Vietnam median of 391 (29% of peer level).
+C046,Jakarta General Hospital 01,Indonesia,All,None - buys all 3 products,Declining account,Confirmed units fell 56% (346 in 2025-10 to 2026-03 vs 153 in 2026-04 to 2026-09).
+C051,Jakarta Health Network 06,Indonesia,All,None - buys all 3 products,Declining account,Confirmed units fell 61% (781 in 2025-10 to 2026-03 vs 304 in 2026-04 to 2026-09).
+C060,Jakarta Health Services 15,Indonesia,All,None - buys all 3 products,Declining account,Confirmed units fell 54% (857 in 2025-10 to 2026-03 vs 390 in 2026-04 to 2026-09).
+C023,Kuala Lumpur University Hospital 08,Malaysia,All,None - buys all 3 products,Declining account,Confirmed units fell 55% (287 in 2025-10 to 2026-03 vs 128 in 2026-04 to 2026-09).
+C005,Singapore Community Hospital 05,Singapore,All,None - buys all 3 products,Declining account,Confirmed units fell 70% (737 in 2025-10 to 2026-03 vs 224 in 2026-04 to 2026-09).
+C039,Bangkok Medical Institute 09,Thailand,All,None - buys all 3 products,Declining account,Confirmed units fell 72% (616 in 2025-10 to 2026-03 vs 175 in 2026-04 to 2026-09).
+C066,Ho Chi Minh City Health Network 06,Vietnam,All,None - buys all 3 products,Declining account,Confirmed units fell 65% (856 in 2025-10 to 2026-03 vs 298 in 2026-04 to 2026-09).

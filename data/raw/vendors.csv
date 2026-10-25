@@ -1,0 +1,16 @@
+vendor_id,vendor_name,country,city,business_entity,active_status
+V001,Lab Supply Partner 01,Singapore,Singapore,SPD,Active
+V002,Lab Supply Partner 02,Malaysia,Kuala Lumpur,QTS,Active
+V003,Lab Supply Partner 03,Thailand,Bangkok,QTG,Active
+V004,Lab Supply Partner 04,Indonesia,Jakarta,SPD,Active
+V005,Lab Supply Partner 05,Vietnam,Ho Chi Minh City,QTS,Active
+V006,Lab Supply Partner 06,Singapore,Singapore,QTG,Active
+V007,Lab Supply Partner 07,Malaysia,Kuala Lumpur,SPD,Active
+V008,Lab Supply Partner 08,Thailand,Bangkok,QTS,Active
+V009,Lab Supply Partner 09,Indonesia,Jakarta,QTG,Active
+V010,Lab Supply Partner 10,Vietnam,Ho Chi Minh City,SPD,Active
+V011,Lab Supply Partner 11,Singapore,Singapore,QTS,Active
+V012,Lab Supply Partner 12,Malaysia,Kuala Lumpur,QTG,Active
+V013,Lab Supply Partner 13,Thailand,Bangkok,SPD,Active
+V014,Lab Supply Partner 14,Indonesia,Jakarta,QTS,Active
+V015,Lab Supply Partner 15,Vietnam,Ho Chi Minh City,QTG,Active

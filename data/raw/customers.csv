@@ -1,0 +1,87 @@
+customer_id,customer_name,city,country,country_code,business_entity,customer_type,active_status,canonical_customer_id,registration_no
+C001,Singapore General Hospital 01,Singapore,Singapore,SG,SPD,Hospital,Active,C001,SG-REG-100000
+C002,Singapore Medical Centre 02,Singapore,Singapore,SG,QTS,Clinic,Active,C002,SG-REG-100001
+C003,Singapore Diagnostic Laboratory 03,Singapore,Singapore,SG,QTG,Laboratory,Active,C003,SG-REG-100002
+C004,Singapore Specialist Clinic 04,Singapore,Singapore,SG,SPD,Hospital,Active,C004,SG-REG-100003
+C005,Singapore Community Hospital 05,Singapore,Singapore,SG,QTS,Clinic,Active,C005,SG-REG-100004
+C006,Singapore Health Network 06,Singapore,Singapore,SG,QTG,Laboratory,Active,C006,SG-REG-100005
+C007,Singapore Pathology Centre 07,Singapore,Singapore,SG,SPD,Hospital,Active,C007,SG-REG-100006
+C008,Singapore University Hospital 08,Singapore,Singapore,SG,QTS,Clinic,Active,C008,SG-REG-100007
+C009,Singapore Medical Institute 09,Singapore,Singapore,SG,QTG,Laboratory,Active,C009,SG-REG-100008
+C010,Singapore Care Clinic 10,Singapore,Singapore,SG,SPD,Hospital,Active,C010,SG-REG-100009
+C011,Singapore Healthcare Group 11,Singapore,Singapore,SG,QTS,Clinic,Active,C011,SG-REG-100010
+C012,Singapore Research Hospital 12,Singapore,Singapore,SG,QTG,Laboratory,Active,C012,SG-REG-100011
+C013,Singapore Diagnostic Centre 13,Singapore,Singapore,SG,SPD,Hospital,Active,C013,SG-REG-100012
+C014,Singapore Clinical Laboratory 14,Singapore,Singapore,SG,QTS,Clinic,Active,C014,SG-REG-100013
+C015,Singapore Health Services 15,Singapore,Singapore,SG,QTG,Laboratory,Active,C015,SG-REG-100014
+C016,Kuala Lumpur General Hospital 01,Kuala Lumpur,Malaysia,MY,SPD,Hospital,Active,C016,MY-REG-100300
+C017,Kuala Lumpur Medical Centre 02,Kuala Lumpur,Malaysia,MY,QTS,Clinic,Active,C017,MY-REG-100301
+C018,Kuala Lumpur Diagnostic Laboratory 03,Kuala Lumpur,Malaysia,MY,QTG,Laboratory,Active,C018,MY-REG-100302
+C019,Kuala Lumpur Specialist Clinic 04,Kuala Lumpur,Malaysia,MY,SPD,Hospital,Active,C019,MY-REG-100303
+C020,Kuala Lumpur Community Hospital 05,Kuala Lumpur,Malaysia,MY,QTS,Clinic,Active,C020,MY-REG-100304
+C021,Kuala Lumpur Health Network 06,Kuala Lumpur,Malaysia,MY,QTG,Laboratory,Active,C021,MY-REG-100305
+C022,Kuala Lumpur Pathology Centre 07,Kuala Lumpur,Malaysia,MY,SPD,Hospital,Active,C022,MY-REG-100306
+C023,Kuala Lumpur University Hospital 08,Kuala Lumpur,Malaysia,MY,QTS,Clinic,Active,C023,MY-REG-100307
+C024,Kuala Lumpur Medical Institute 09,Kuala Lumpur,Malaysia,MY,QTG,Laboratory,Active,C024,MY-REG-100308
+C025,Kuala Lumpur Care Clinic 10,Kuala Lumpur,Malaysia,MY,SPD,Hospital,Active,C025,MY-REG-100309
+C026,Kuala Lumpur Healthcare Group 11,Kuala Lumpur,Malaysia,MY,QTS,Clinic,Active,C026,MY-REG-100310
+C027,Kuala Lumpur Research Hospital 12,Kuala Lumpur,Malaysia,MY,QTG,Laboratory,Active,C027,MY-REG-100311
+C028,Kuala Lumpur Diagnostic Centre 13,Kuala Lumpur,Malaysia,MY,SPD,Hospital,Active,C028,MY-REG-100312
+C029,Kuala Lumpur Clinical Laboratory 14,Kuala Lumpur,Malaysia,MY,QTS,Clinic,Active,C029,MY-REG-100313
+C030,Kuala Lumpur Health Services 15,Kuala Lumpur,Malaysia,MY,QTG,Laboratory,Active,C030,MY-REG-100314
+C031,Bangkok General Hospital 01,Bangkok,Thailand,TH,SPD,Hospital,Active,C031,TH-REG-100600
+C032,Bangkok Medical Centre 02,Bangkok,Thailand,TH,QTS,Clinic,Active,C032,TH-REG-100601
+C033,Bangkok Diagnostic Laboratory 03,Bangkok,Thailand,TH,QTG,Laboratory,Active,C033,TH-REG-100602
+C034,Bangkok Specialist Clinic 04,Bangkok,Thailand,TH,SPD,Hospital,Active,C034,TH-REG-100603
+C035,Bangkok Community Hospital 05,Bangkok,Thailand,TH,QTS,Clinic,Active,C035,TH-REG-100604
+C036,Bangkok Health Network 06,Bangkok,Thailand,TH,QTG,Laboratory,Active,C036,TH-REG-100605
+C037,Bangkok Pathology Centre 07,Bangkok,Thailand,TH,SPD,Hospital,Active,C037,TH-REG-100606
+C038,Bangkok University Hospital 08,Bangkok,Thailand,TH,QTS,Clinic,Active,C038,TH-REG-100607
+C039,Bangkok Medical Institute 09,Bangkok,Thailand,TH,QTG,Laboratory,Active,C039,TH-REG-100608
+C040,Bangkok Care Clinic 10,Bangkok,Thailand,TH,SPD,Hospital,Active,C040,TH-REG-100609
+C041,Bangkok Healthcare Group 11,Bangkok,Thailand,TH,QTS,Clinic,Active,C041,TH-REG-100610
+C042,Bangkok Research Hospital 12,Bangkok,Thailand,TH,QTG,Laboratory,Active,C042,TH-REG-100611
+C043,Bangkok Diagnostic Centre 13,Bangkok,Thailand,TH,SPD,Hospital,Active,C043,TH-REG-100612
+C044,Bangkok Clinical Laboratory 14,Bangkok,Thailand,TH,QTS,Clinic,Active,C044,TH-REG-100613
+C045,Bangkok Health Services 15,Bangkok,Thailand,TH,QTG,Laboratory,Active,C045,TH-REG-100614
+C046,Jakarta General Hospital 01,Jakarta,Indonesia,ID,SPD,Hospital,Active,C046,ID-REG-100900
+C047,Jakarta Medical Centre 02,Jakarta,Indonesia,ID,QTS,Clinic,Active,C047,ID-REG-100901
+C048,Jakarta Diagnostic Laboratory 03,Jakarta,Indonesia,ID,QTG,Laboratory,Active,C048,ID-REG-100902
+C049,Jakarta Specialist Clinic 04,Jakarta,Indonesia,ID,SPD,Hospital,Active,C049,ID-REG-100903
+C050,Jakarta Community Hospital 05,Jakarta,Indonesia,ID,QTS,Clinic,Active,C050,ID-REG-100904
+C051,Jakarta Health Network 06,Jakarta,Indonesia,ID,QTG,Laboratory,Active,C051,ID-REG-100905
+C052,Jakarta Pathology Centre 07,Jakarta,Indonesia,ID,SPD,Hospital,Active,C052,ID-REG-100906
+C053,Jakarta University Hospital 08,Jakarta,Indonesia,ID,QTS,Clinic,Active,C053,ID-REG-100907
+C054,Jakarta Medical Institute 09,Jakarta,Indonesia,ID,QTG,Laboratory,Active,C054,ID-REG-100908
+C055,Jakarta Care Clinic 10,Jakarta,Indonesia,ID,SPD,Hospital,Active,C055,ID-REG-100909
+C056,Jakarta Healthcare Group 11,Jakarta,Indonesia,ID,QTS,Clinic,Active,C056,ID-REG-100910
+C057,Jakarta Research Hospital 12,Jakarta,Indonesia,ID,QTG,Laboratory,Active,C057,ID-REG-100911
+C058,Jakarta Diagnostic Centre 13,Jakarta,Indonesia,ID,SPD,Hospital,Active,C058,ID-REG-100912
+C059,Jakarta Clinical Laboratory 14,Jakarta,Indonesia,ID,QTS,Clinic,Active,C059,ID-REG-100913
+C060,Jakarta Health Services 15,Jakarta,Indonesia,ID,QTG,Laboratory,Active,C060,ID-REG-100914
+C061,Ho Chi Minh City General Hospital 01,Ho Chi Minh City,Vietnam,VN,SPD,Hospital,Active,C061,VN-REG-101200
+C062,Ho Chi Minh City Medical Centre 02,Ho Chi Minh City,Vietnam,VN,QTS,Clinic,Active,C062,VN-REG-101201
+C063,Ho Chi Minh City Diagnostic Laboratory 03,Ho Chi Minh City,Vietnam,VN,QTG,Laboratory,Active,C063,VN-REG-101202
+C064,Ho Chi Minh City Specialist Clinic 04,Ho Chi Minh City,Vietnam,VN,SPD,Hospital,Active,C064,VN-REG-101203
+C065,Ho Chi Minh City Community Hospital 05,Ho Chi Minh City,Vietnam,VN,QTS,Clinic,Active,C065,VN-REG-101204
+C066,Ho Chi Minh City Health Network 06,Ho Chi Minh City,Vietnam,VN,QTG,Laboratory,Active,C066,VN-REG-101205
+C067,Ho Chi Minh City Pathology Centre 07,Ho Chi Minh City,Vietnam,VN,SPD,Hospital,Active,C067,VN-REG-101206
+C068,Ho Chi Minh City University Hospital 08,Ho Chi Minh City,Vietnam,VN,QTS,Clinic,Active,C068,VN-REG-101207
+C069,Ho Chi Minh City Medical Institute 09,Ho Chi Minh City,Vietnam,VN,QTG,Laboratory,Active,C069,VN-REG-101208
+C070,Ho Chi Minh City Care Clinic 10,Ho Chi Minh City,Vietnam,VN,SPD,Hospital,Active,C070,VN-REG-101209
+C071,Ho Chi Minh City Healthcare Group 11,Ho Chi Minh City,Vietnam,VN,QTS,Clinic,Active,C071,VN-REG-101210
+C072,Ho Chi Minh City Research Hospital 12,Ho Chi Minh City,Vietnam,VN,QTG,Laboratory,Active,C072,VN-REG-101211
+C073,Ho Chi Minh City Diagnostic Centre 13,Ho Chi Minh City,Vietnam,VN,SPD,Hospital,Active,C073,VN-REG-101212
+C074,Ho Chi Minh City Clinical Laboratory 14,Ho Chi Minh City,Vietnam,VN,QTS,Clinic,Active,C074,VN-REG-101213
+C075,Ho Chi Minh City Health Services 15,Ho Chi Minh City,Vietnam,VN,QTG,Laboratory,Active,C075,VN-REG-101214
+C076,Singapore General Hosp 01,Singapore,Singapore,SG,SPD,Hospital,Review,C001,SG-REG-100000
+C077,KL Medical Ctr 02,Kuala Lumpur,Malaysia,MY,QTS,Clinic,Review,C017,MY-REG-100301
+C078,Singapore Diagnostic Lab. 03,Singapore,Singapore,SG,QTG,Laboratory,Review,C003,SG-REG-100002
+C079,SG University Hospital 08,Singapore,Singapore,SG,SPD,Clinic,Review,C008,SG-REG-100007
+C080,KL General Hospital 01,Kuala Lumpur,Malaysia,MY,QTS,Hospital,Review,C016,MY-REG-100300
+C081,Kuala Lumpur Medical Inst 09,Kuala Lumpur,Malaysia,MY,QTG,Laboratory,Review,C024,
+C082,Bangkok Diagnostic Laboratory,Bangkok,Thailand,TH,SPD,Laboratory,Review,C033,TH-REG-100602
+C083,Bangkok Univ. Hospital 08,Bangkok,Thailand,TH,QTS,Clinic,Review,C038,
+C084,Jakarta Medical Center 02,Jakarta,Indonesia,ID,QTG,Clinic,Review,C047,ID-REG-100901
+C085,Jakarta Care Clinc 10,Jakarta,Indonesia,ID,SPD,Hospital,Review,C055,ID-REG-100909
+C086,HCMC Medical Centre 02,Ho Chi Minh City,Vietnam,VN,SPD,Clinic,Review,C062,VN-REG-101201

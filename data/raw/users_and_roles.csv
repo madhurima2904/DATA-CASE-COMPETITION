@@ -1,0 +1,10 @@
+user_id,display_name,role,entity,country,active
+M001,Amy Tan,Requestor,SPD,Singapore,Yes
+M002,Priya Shah,MDM Analyst,SPD,Singapore,Yes
+M003,Wei Jie Lim,Finance,QTS,Singapore,Yes
+M004,Daniel Wong,Business Unit Head,SPD,Singapore,Yes
+M005,Siti Rahman,Quality/Regulatory,QTG,Malaysia,Yes
+M006,Nur Aini,Business Support,QTS,Malaysia,Yes
+M007,Marcus Lee,Requestor,QTG,Thailand,Yes
+M008,Andre Putra,Business Unit Head,QTG,Indonesia,Yes
+M009,Linh Nguyen,Finance,SPD,Vietnam,Yes
