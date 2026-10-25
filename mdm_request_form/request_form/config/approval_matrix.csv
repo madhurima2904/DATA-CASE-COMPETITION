@@ -1,0 +1,12 @@
+request_type,step_order,approver_role,requires_review,condition,sla_hours
+Customer,1,Business Unit Head,Yes,,48
+Customer,2,Finance,Yes,,48
+Customer,3,MDM Analyst,Yes,,24
+Item,1,Quality/Regulatory,Yes,,48
+Item,2,Business Unit Head,Yes,,48
+Item,3,MDM Analyst,Yes,,24
+Vendor,1,Procurement,Yes,,48
+Vendor,2,Finance,Yes,,48
+Vendor,3,MDM Analyst,Yes,,24
+Cost Center,1,Finance,Yes,,48
+Cost Center,2,MDM Analyst,Yes,,24
