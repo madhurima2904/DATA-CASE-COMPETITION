@@ -1,12 +1,12 @@
-request_type,step_order,approver_role,requires_review
-Customer,1,Business Unit Head,Yes
-Customer,2,Finance,Yes
-Customer,3,MDM Analyst,Yes
-Item,1,Quality/Regulatory,Yes
-Item,2,Business Unit Head,Yes
-Item,3,MDM Analyst,Yes
-Vendor,1,Procurement,Yes
-Vendor,2,Finance,Yes
-Vendor,3,MDM Analyst,Yes
-Cost Center,1,Finance,Yes
-Cost Center,2,MDM Analyst,Yes
+request_type,step_order,approver_role,requires_review,entity,country,sla_hours
+Customer,1,Business Unit Head,Yes,ALL,ALL,48
+Customer,1,Finance,Yes,ALL,ALL,48
+Customer,2,MDM Analyst,Yes,ALL,ALL,24
+Item,1,Quality/Regulatory,Yes,ALL,ALL,48
+Item,1,Business Unit Head,Yes,ALL,ALL,48
+Item,2,MDM Analyst,Yes,ALL,ALL,24
+Vendor,1,Procurement,Yes,ALL,ALL,48
+Vendor,1,Finance,Yes,ALL,ALL,48
+Vendor,2,MDM Analyst,Yes,ALL,ALL,24
+Cost Center,1,Finance,Yes,ALL,ALL,48
+Cost Center,2,MDM Analyst,Yes,ALL,ALL,24
