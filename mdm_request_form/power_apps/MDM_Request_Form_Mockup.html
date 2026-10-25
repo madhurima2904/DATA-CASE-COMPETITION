@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDM Requests - Teams app mock-up</title>
+<style>
+:root{
+  --rail:#ebebeb; --bar:#f5f5f5; --bg:#f5f5f5; --card:#ffffff; --ink:#242424; --muted:#616161; --line:#e0e0e0;
+  --brand:#5b5fc7; --brand-dark:#4f52b2; --brand-soft:#e8ebfa;
+  --ok:#0e700e; --ok-soft:#e6f4e6; --warn:#8a5300; --warn-soft:#fff4ce; --bad:#b10e1c; --bad-soft:#fde7e9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI","Segoe UI Web",-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.mock{background:#fff8e1;color:#5d4200;border-bottom:1px solid #f0d78a;font-size:12px;padding:5px 16px;text-align:center}
+.top{height:48px;background:var(--bar);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 16px}
+.top .search{flex:1;max-width:560px;margin:0 auto;height:32px;border-radius:6px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--muted)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+.shell{display:flex;height:calc(100% - 48px - 27px)}
+.rail{width:68px;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:2px}
+.rail a{width:60px;padding:8px 0;border-radius:6px;color:var(--muted);text-decoration:none;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.rail a svg{width:20px;height:20px}
+.rail a.on{color:var(--brand);background:#fff}
+.rail .appicon{width:22px;height:22px;border-radius:5px;background:var(--brand);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+.apphead{background:#fff;border-bottom:1px solid var(--line);padding:10px 24px 0}
+.apptitle{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.apptitle .ic{width:28px;height:28px;border-radius:6px;background:var(--brand);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.apptitle h1{font-size:18px;margin:0;font-weight:600}
+.apptitle .who{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.apptitle select{height:30px;border:1px solid var(--line);border-radius:4px;background:#fff;padding:0 8px}
+.tabs{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.tabs button{background:none;border:0;padding:10px 12px;color:var(--muted);border-bottom:3px solid transparent;font-weight:600}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--brand)}
+.tabs .badge[hidden]{display:none}
+.tabs .badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;line-height:18px}
+.content{flex:1;overflow:auto;padding:20px 24px 40px}
+.grid2{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start}
+@media (max-width:980px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px}
+.card h2{font-size:16px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 14px}
+.seg button.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark);font-weight:600}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+@media (max-width:640px){.fields{grid-template-columns:1fr}}
+.field label{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:5px}
+.field .req{color:var(--bad)}
+.field .lock{font-size:11px;font-weight:600;color:#6b4a00;background:var(--warn-soft);border-radius:4px;padding:1px 6px}
+.field input,.field select{width:100%;height:34px;border:1px solid #c7c7c7;border-bottom:2px solid #8a8a8a;border-radius:4px;padding:0 10px;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-bottom-color:var(--brand)}
+.field .help{font-size:12px;color:var(--muted);margin-top:4px}
+.field.missing input,.field.missing select{border-bottom-color:var(--bad)}
+.checks h3{font-size:14px;margin:0 0 8px}
+.alert{border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.alert.ok{background:var(--ok-soft);color:var(--ok)}
+.alert.warn{background:var(--warn-soft);color:var(--warn)}
+.alert.bad{background:var(--bad-soft);color:var(--bad)}
+.alert.info{background:var(--brand-soft);color:var(--brand-dark)}
+.alert ul{margin:6px 0 0;padding-left:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--brand-soft);color:var(--brand-dark)}
+.pill.grey{background:#f0f0f0;color:var(--muted)}
+.route{list-style:none;margin:0 0 14px;padding:0}
+.route li{display:flex;gap:10px;align-items:center;padding:6px 0}
+.route .n{width:22px;height:22px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:4px;height:34px;padding:0 16px;font-weight:600}
+.btn:hover{background:var(--brand-dark)}
+.btn[disabled]{background:#e0e0e0;color:#9e9e9e;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid #c7c7c7}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid #e3a5ab}
+.btn.wide{width:100%}
+.override{border:1px dashed #e3a5ab;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px}
+.override input[type=text]{width:100%;height:32px;margin-top:6px;border:1px solid #c7c7c7;border-radius:4px;padding:0 8px}
+.reqcard{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px}
+.reqhead{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.reqhead .t{font-weight:600}
+.reqhead .m{color:var(--muted);font-size:12px;margin-top:2px}
+.reqhead .s{margin-left:auto}
+.stepper{display:flex;gap:0;margin:14px 0 4px;flex-wrap:wrap}
+.step{flex:1;min-width:120px;position:relative;padding-top:20px;font-size:12px}
+.step:before{content:"";position:absolute;top:7px;left:0;right:0;height:3px;background:#e0e0e0}
+.step .dot{position:absolute;top:0;left:0;width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid #c7c7c7}
+.step.done:before{background:var(--ok)} .step.done .dot{border-color:var(--ok);background:var(--ok)}
+.step.now .dot{border-color:var(--brand)} .step.stop .dot{border-color:var(--bad);background:var(--bad)}
+.step .r{font-weight:600;padding-right:8px} .step .w{color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar input,.toolbar select{height:32px;border:1px solid #c7c7c7;border-radius:4px;padding:0 8px;background:#fff}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:4px 12px;font-size:13px;margin:10px 0}
+.kv div:nth-child(odd){color:var(--muted)}
+.toast{position:fixed;right:20px;bottom:20px;max-width:360px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:12px 14px;font-size:13px;display:none}
+.toast b{display:block;margin-bottom:2px}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:10px 0 16px}
+@media (max-width:900px){.flow{grid-template-columns:1fr}}
+.flow div{background:var(--brand-soft);border-radius:6px;padding:10px;font-size:12px}
+.flow b{display:block;font-size:13px;color:var(--brand-dark);margin-bottom:2px}
+.empty{color:var(--muted);text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<div class="mock">Prototype mock-up of a Power Apps form inside Microsoft Teams &middot; synthetic competition data &middot; not connected to Microsoft 365 or SAP B1</div>
+<div class="top">
+  <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</div>
+  <div class="avatar" id="avatar" aria-label="Signed-in user">AT</div>
+</div>
+<div class="shell">
+  <nav class="rail" aria-label="App bar">
+    <a href="#" aria-label="Activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg>Activity</a>
+    <a href="#" aria-label="Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>Chat</a>
+    <a href="#" aria-label="Teams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M15 14.5c3 0 6 1.4 6 4.5"/></svg>Teams</a>
+    <a href="#" aria-label="Calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</a>
+    <a href="#" class="on" aria-label="MDM Requests app"><span class="appicon">MDM</span>MDM</a>
+    <a href="#" aria-label="Apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Apps</a>
+  </nav>
+  <main>
+    <div class="apphead">
+      <div class="apptitle">
+        <div class="ic">MDM</div>
+        <h1>MDM Requests</h1><span class="pill grey">Power Apps</span>
+        <div class="who"><label for="who">Signed in as</label><select id="who"></select></div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button data-tab="new" class="on" role="tab">New request</button>
+        <button data-tab="mine" role="tab">My requests</button>
+        <button data-tab="approvals" role="tab">Approvals<span class="badge" id="apbadge" hidden>0</span></button>
+        <button data-tab="about" role="tab">About</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const DATA = {"customers": [{"customer_id": "C001", "customer_name": "Singapore General Hospital 01", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C001", "registration_no": "SG-REG-100000"}, {"customer_id": "C002", "customer_name": "Singapore Medical Centre 02", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C002", "registration_no": "SG-REG-100001"}, {"customer_id": "C003", "customer_name": "Singapore Diagnostic Laboratory 03", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C003", "registration_no": "SG-REG-100002"}, {"customer_id": "C004", "customer_name": "Singapore Specialist Clinic 04", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C004", "registration_no": "SG-REG-100003"}, {"customer_id": "C005", "customer_name": "Singapore Community Hospital 05", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C005", "registration_no": "SG-REG-100004"}, {"customer_id": "C006", "customer_name": "Singapore Health Network 06", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C006", "registration_no": "SG-REG-100005"}, {"customer_id": "C007", "customer_name": "Singapore Pathology Centre 07", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C007", "registration_no": "SG-REG-100006"}, {"customer_id": "C008", "customer_name": "Singapore University Hospital 08", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C008", "registration_no": "SG-REG-100007"}, {"customer_id": "C009", "customer_name": "Singapore Medical Institute 09", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C009", "registration_no": "SG-REG-100008"}, {"customer_id": "C010", "customer_name": "Singapore Care Clinic 10", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C010", "registration_no": "SG-REG-100009"}, {"customer_id": "C011", "customer_name": "Singapore Healthcare Group 11", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C011", "registration_no": "SG-REG-100010"}, {"customer_id": "C012", "customer_name": "Singapore Research Hospital 12", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C012", "registration_no": "SG-REG-100011"}, {"customer_id": "C013", "customer_name": "Singapore Diagnostic Centre 13", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C013", "registration_no": "SG-REG-100012"}, {"customer_id": "C014", "customer_name": "Singapore Clinical Laboratory 14", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C014", "registration_no": "SG-REG-100013"}, {"customer_id": "C015", "customer_name": "Singapore Health Services 15", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C015", "registration_no": "SG-REG-100014"}, {"customer_id": "C016", "customer_name": "Kuala Lumpur General Hospital 01", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C016", "registration_no": "MY-REG-100300"}, {"customer_id": "C017", "customer_name": "Kuala Lumpur Medical Centre 02", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C017", "registration_no": "MY-REG-100301"}, {"customer_id": "C018", "customer_name": "Kuala Lumpur Diagnostic Laboratory 03", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C018", "registration_no": "MY-REG-100302"}, {"customer_id": "C019", "customer_name": "Kuala Lumpur Specialist Clinic 04", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C019", "registration_no": "MY-REG-100303"}, {"customer_id": "C020", "customer_name": "Kuala Lumpur Community Hospital 05", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C020", "registration_no": "MY-REG-100304"}, {"customer_id": "C021", "customer_name": "Kuala Lumpur Health Network 06", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C021", "registration_no": "MY-REG-100305"}, {"customer_id": "C022", "customer_name": "Kuala Lumpur Pathology Centre 07", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C022", "registration_no": "MY-REG-100306"}, {"customer_id": "C023", "customer_name": "Kuala Lumpur University Hospital 08", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C023", "registration_no": "MY-REG-100307"}, {"customer_id": "C024", "customer_name": "Kuala Lumpur Medical Institute 09", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C024", "registration_no": "MY-REG-100308"}, {"customer_id": "C025", "customer_name": "Kuala Lumpur Care Clinic 10", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C025", "registration_no": "MY-REG-100309"}, {"customer_id": "C026", "customer_name": "Kuala Lumpur Healthcare Group 11", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C026", "registration_no": "MY-REG-100310"}, {"customer_id": "C027", "customer_name": "Kuala Lumpur Research Hospital 12", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C027", "registration_no": "MY-REG-100311"}, {"customer_id": "C028", "customer_name": "Kuala Lumpur Diagnostic Centre 13", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C028", "registration_no": "MY-REG-100312"}, {"customer_id": "C029", "customer_name": "Kuala Lumpur Clinical Laboratory 14", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C029", "registration_no": "MY-REG-100313"}, {"customer_id": "C030", "customer_name": "Kuala Lumpur Health Services 15", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C030", "registration_no": "MY-REG-100314"}, {"customer_id": "C031", "customer_name": "Bangkok General Hospital 01", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C031", "registration_no": "TH-REG-100600"}, {"customer_id": "C032", "customer_name": "Bangkok Medical Centre 02", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C032", "registration_no": "TH-REG-100601"}, {"customer_id": "C033", "customer_name": "Bangkok Diagnostic Laboratory 03", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C033", "registration_no": "TH-REG-100602"}, {"customer_id": "C034", "customer_name": "Bangkok Specialist Clinic 04", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C034", "registration_no": "TH-REG-100603"}, {"customer_id": "C035", "customer_name": "Bangkok Community Hospital 05", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C035", "registration_no": "TH-REG-100604"}, {"customer_id": "C036", "customer_name": "Bangkok Health Network 06", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C036", "registration_no": "TH-REG-100605"}, {"customer_id": "C037", "customer_name": "Bangkok Pathology Centre 07", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C037", "registration_no": "TH-REG-100606"}, {"customer_id": "C038", "customer_name": "Bangkok University Hospital 08", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C038", "registration_no": "TH-REG-100607"}, {"customer_id": "C039", "customer_name": "Bangkok Medical Institute 09", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C039", "registration_no": "TH-REG-100608"}, {"customer_id": "C040", "customer_name": "Bangkok Care Clinic 10", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C040", "registration_no": "TH-REG-100609"}, {"customer_id": "C041", "customer_name": "Bangkok Healthcare Group 11", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C041", "registration_no": "TH-REG-100610"}, {"customer_id": "C042", "customer_name": "Bangkok Research Hospital 12", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C042", "registration_no": "TH-REG-100611"}, {"customer_id": "C043", "customer_name": "Bangkok Diagnostic Centre 13", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C043", "registration_no": "TH-REG-100612"}, {"customer_id": "C044", "customer_name": "Bangkok Clinical Laboratory 14", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C044", "registration_no": "TH-REG-100613"}, {"customer_id": "C045", "customer_name": "Bangkok Health Services 15", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C045", "registration_no": "TH-REG-100614"}, {"customer_id": "C046", "customer_name": "Jakarta General Hospital 01", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C046", "registration_no": "ID-REG-100900"}, {"customer_id": "C047", "customer_name": "Jakarta Medical Centre 02", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C047", "registration_no": "ID-REG-100901"}, {"customer_id": "C048", "customer_name": "Jakarta Diagnostic Laboratory 03", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C048", "registration_no": "ID-REG-100902"}, {"customer_id": "C049", "customer_name": "Jakarta Specialist Clinic 04", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C049", "registration_no": "ID-REG-100903"}, {"customer_id": "C050", "customer_name": "Jakarta Community Hospital 05", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C050", "registration_no": "ID-REG-100904"}, {"customer_id": "C051", "customer_name": "Jakarta Health Network 06", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C051", "registration_no": "ID-REG-100905"}, {"customer_id": "C052", "customer_name": "Jakarta Pathology Centre 07", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C052", "registration_no": "ID-REG-100906"}, {"customer_id": "C053", "customer_name": "Jakarta University Hospital 08", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C053", "registration_no": "ID-REG-100907"}, {"customer_id": "C054", "customer_name": "Jakarta Medical Institute 09", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C054", "registration_no": "ID-REG-100908"}, {"customer_id": "C055", "customer_name": "Jakarta Care Clinic 10", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C055", "registration_no": "ID-REG-100909"}, {"customer_id": "C056", "customer_name": "Jakarta Healthcare Group 11", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C056", "registration_no": "ID-REG-100910"}, {"customer_id": "C057", "customer_name": "Jakarta Research Hospital 12", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C057", "registration_no": "ID-REG-100911"}, {"customer_id": "C058", "customer_name": "Jakarta Diagnostic Centre 13", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C058", "registration_no": "ID-REG-100912"}, {"customer_id": "C059", "customer_name": "Jakarta Clinical Laboratory 14", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C059", "registration_no": "ID-REG-100913"}, {"customer_id": "C060", "customer_name": "Jakarta Health Services 15", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C060", "registration_no": "ID-REG-100914"}, {"customer_id": "C061", "customer_name": "Ho Chi Minh City General Hospital 01", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C061", "registration_no": "VN-REG-101200"}, {"customer_id": "C062", "customer_name": "Ho Chi Minh City Medical Centre 02", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C062", "registration_no": "VN-REG-101201"}, {"customer_id": "C063", "customer_name": "Ho Chi Minh City Diagnostic Laboratory 03", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C063", "registration_no": "VN-REG-101202"}, {"customer_id": "C064", "customer_name": "Ho Chi Minh City Specialist Clinic 04", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C064", "registration_no": "VN-REG-101203"}, {"customer_id": "C065", "customer_name": "Ho Chi Minh City Community Hospital 05", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C065", "registration_no": "VN-REG-101204"}, {"customer_id": "C066", "customer_name": "Ho Chi Minh City Health Network 06", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C066", "registration_no": "VN-REG-101205"}, {"customer_id": "C067", "customer_name": "Ho Chi Minh City Pathology Centre 07", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C067", "registration_no": "VN-REG-101206"}, {"customer_id": "C068", "customer_name": "Ho Chi Minh City University Hospital 08", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C068", "registration_no": "VN-REG-101207"}, {"customer_id": "C069", "customer_name": "Ho Chi Minh City Medical Institute 09", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C069", "registration_no": "VN-REG-101208"}, {"customer_id": "C070", "customer_name": "Ho Chi Minh City Care Clinic 10", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C070", "registration_no": "VN-REG-101209"}, {"customer_id": "C071", "customer_name": "Ho Chi Minh City Healthcare Group 11", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C071", "registration_no": "VN-REG-101210"}, {"customer_id": "C072", "customer_name": "Ho Chi Minh City Research Hospital 12", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C072", "registration_no": "VN-REG-101211"}, {"customer_id": "C073", "customer_name": "Ho Chi Minh City Diagnostic Centre 13", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Active", "canonical_customer_id": "C073", "registration_no": "VN-REG-101212"}, {"customer_id": "C074", "customer_name": "Ho Chi Minh City Clinical Laboratory 14", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Active", "canonical_customer_id": "C074", "registration_no": "VN-REG-101213"}, {"customer_id": "C075", "customer_name": "Ho Chi Minh City Health Services 15", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Active", "canonical_customer_id": "C075", "registration_no": "VN-REG-101214"}, {"customer_id": "C076", "customer_name": "Singapore General Hosp 01", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Review", "canonical_customer_id": "C001", "registration_no": "SG-REG-100000"}, {"customer_id": "C077", "customer_name": "KL Medical Ctr 02", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Review", "canonical_customer_id": "C017", "registration_no": "MY-REG-100301"}, {"customer_id": "C078", "customer_name": "Singapore Diagnostic Lab. 03", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Review", "canonical_customer_id": "C003", "registration_no": "SG-REG-100002"}, {"customer_id": "C079", "customer_name": "SG University Hospital 08", "city": "Singapore", "country": "Singapore", "country_code": "SG", "business_entity": "SPD", "customer_type": "Clinic", "active_status": "Review", "canonical_customer_id": "C008", "registration_no": "SG-REG-100007"}, {"customer_id": "C080", "customer_name": "KL General Hospital 01", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTS", "customer_type": "Hospital", "active_status": "Review", "canonical_customer_id": "C016", "registration_no": "MY-REG-100300"}, {"customer_id": "C081", "customer_name": "Kuala Lumpur Medical Inst 09", "city": "Kuala Lumpur", "country": "Malaysia", "country_code": "MY", "business_entity": "QTG", "customer_type": "Laboratory", "active_status": "Review", "canonical_customer_id": "C024", "registration_no": ""}, {"customer_id": "C082", "customer_name": "Bangkok Diagnostic Laboratory", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "SPD", "customer_type": "Laboratory", "active_status": "Review", "canonical_customer_id": "C033", "registration_no": "TH-REG-100602"}, {"customer_id": "C083", "customer_name": "Bangkok Univ. Hospital 08", "city": "Bangkok", "country": "Thailand", "country_code": "TH", "business_entity": "QTS", "customer_type": "Clinic", "active_status": "Review", "canonical_customer_id": "C038", "registration_no": ""}, {"customer_id": "C084", "customer_name": "Jakarta Medical Center 02", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "QTG", "customer_type": "Clinic", "active_status": "Review", "canonical_customer_id": "C047", "registration_no": "ID-REG-100901"}, {"customer_id": "C085", "customer_name": "Jakarta Care Clinc 10", "city": "Jakarta", "country": "Indonesia", "country_code": "ID", "business_entity": "SPD", "customer_type": "Hospital", "active_status": "Review", "canonical_customer_id": "C055", "registration_no": "ID-REG-100909"}, {"customer_id": "C086", "customer_name": "HCMC Medical Centre 02", "city": "Ho Chi Minh City", "country": "Vietnam", "country_code": "VN", "business_entity": "SPD", "customer_type": "Clinic", "active_status": "Review", "canonical_customer_id": "C062", "registration_no": "VN-REG-101201"}], "items": [{"item_id": "I001", "item_name": "A - Diagnostic Reagent 1", "product_group": "Product A", "category": "Diagnostic reagent", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I002", "item_name": "A - Diagnostic Reagent 2", "product_group": "Product A", "category": "Diagnostic reagent", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I003", "item_name": "A - Diagnostic Reagent 3", "product_group": "Product A", "category": "Diagnostic reagent", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I004", "item_name": "B - Lab Consumable 1", "product_group": "Product B", "category": "Laboratory consumable", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I005", "item_name": "B - Lab Consumable 2", "product_group": "Product B", "category": "Laboratory consumable", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I006", "item_name": "B - Lab Consumable 3", "product_group": "Product B", "category": "Laboratory consumable", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I007", "item_name": "C - Diagnostic Device 1", "product_group": "Product C", "category": "Diagnostic equipment", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I008", "item_name": "C - Diagnostic Device 2", "product_group": "Product C", "category": "Diagnostic equipment", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I009", "item_name": "C - Diagnostic Device 3", "product_group": "Product C", "category": "Diagnostic equipment", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I010", "item_name": "B - Consumable Sample 4", "product_group": "Product B", "category": "Laboratory consumable", "unit": "units", "regulatory_status": "Pending", "active_status": "Inactive"}, {"item_id": "I011", "item_name": "A - Diag. Reagent 2", "product_group": "Product A", "category": "Diagnostic reagent", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I012", "item_name": "B - Laboratory Consumable 01", "product_group": "Product B", "category": "Laboratory consumable", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}, {"item_id": "I013", "item_name": "C - Diagnostic Device 03", "product_group": "Product C", "category": "Diagnostic equipment", "unit": "units", "regulatory_status": "Approved", "active_status": "Active"}], "vendors": [{"vendor_id": "V001", "vendor_name": "Lab Supply Partner 01", "country": "Singapore", "city": "Singapore", "business_entity": "SPD", "active_status": "Active"}, {"vendor_id": "V002", "vendor_name": "Lab Supply Partner 02", "country": "Malaysia", "city": "Kuala Lumpur", "business_entity": "QTS", "active_status": "Active"}, {"vendor_id": "V003", "vendor_name": "Lab Supply Partner 03", "country": "Thailand", "city": "Bangkok", "business_entity": "QTG", "active_status": "Active"}, {"vendor_id": "V004", "vendor_name": "Lab Supply Partner 04", "country": "Indonesia", "city": "Jakarta", "business_entity": "SPD", "active_status": "Active"}, {"vendor_id": "V005", "vendor_name": "Lab Supply Partner 05", "country": "Vietnam", "city": "Ho Chi Minh City", "business_entity": "QTS", "active_status": "Active"}, {"vendor_id": "V006", "vendor_name": "Lab Supply Partner 06", "country": "Singapore", "city": "Singapore", "business_entity": "QTG", "active_status": "Active"}, {"vendor_id": "V007", "vendor_name": "Lab Supply Partner 07", "country": "Malaysia", "city": "Kuala Lumpur", "business_entity": "SPD", "active_status": "Active"}, {"vendor_id": "V008", "vendor_name": "Lab Supply Partner 08", "country": "Thailand", "city": "Bangkok", "business_entity": "QTS", "active_status": "Active"}, {"vendor_id": "V009", "vendor_name": "Lab Supply Partner 09", "country": "Indonesia", "city": "Jakarta", "business_entity": "QTG", "active_status": "Active"}, {"vendor_id": "V010", "vendor_name": "Lab Supply Partner 10", "country": "Vietnam", "city": "Ho Chi Minh City", "business_entity": "SPD", "active_status": "Active"}, {"vendor_id": "V011", "vendor_name": "Lab Supply Partner 11", "country": "Singapore", "city": "Singapore", "business_entity": "QTS", "active_status": "Active"}, {"vendor_id": "V012", "vendor_name": "Lab Supply Partner 12", "country": "Malaysia", "city": "Kuala Lumpur", "business_entity": "QTG", "active_status": "Active"}, {"vendor_id": "V013", "vendor_name": "Lab Supply Partner 13", "country": "Thailand", "city": "Bangkok", "business_entity": "SPD", "active_status": "Active"}, {"vendor_id": "V014", "vendor_name": "Lab Supply Partner 14", "country": "Indonesia", "city": "Jakarta", "business_entity": "QTS", "active_status": "Active"}, {"vendor_id": "V015", "vendor_name": "Lab Supply Partner 15", "country": "Vietnam", "city": "Ho Chi Minh City", "business_entity": "QTG", "active_status": "Active"}], "cost_centers": [{"cost_center_id": "CC001", "cost_center_name": "Singapore SPD Operations", "country": "Singapore", "entity": "SPD", "status": "Active"}, {"cost_center_id": "CC002", "cost_center_name": "Singapore QTS Operations", "country": "Singapore", "entity": "QTS", "status": "Active"}, {"cost_center_id": "CC003", "cost_center_name": "Singapore QTG Operations", "country": "Singapore", "entity": "QTG", "status": "Active"}, {"cost_center_id": "CC004", "cost_center_name": "Kuala Lumpur SPD Operations", "country": "Malaysia", "entity": "SPD", "status": "Active"}, {"cost_center_id": "CC005", "cost_center_name": "Kuala Lumpur QTS Operations", "country": "Malaysia", "entity": "QTS", "status": "Active"}, {"cost_center_id": "CC006", "cost_center_name": "Kuala Lumpur QTG Operations", "country": "Malaysia", "entity": "QTG", "status": "Active"}, {"cost_center_id": "CC007", "cost_center_name": "Bangkok SPD Operations", "country": "Thailand", "entity": "SPD", "status": "Active"}, {"cost_center_id": "CC008", "cost_center_name": "Bangkok QTS Operations", "country": "Thailand", "entity": "QTS", "status": "Active"}, {"cost_center_id": "CC009", "cost_center_name": "Bangkok QTG Operations", "country": "Thailand", "entity": "QTG", "status": "Active"}, {"cost_center_id": "CC010", "cost_center_name": "Jakarta SPD Operations", "country": "Indonesia", "entity": "SPD", "status": "Active"}, {"cost_center_id": "CC011", "cost_center_name": "Jakarta QTS Operations", "country": "Indonesia", "entity": "QTS", "status": "Active"}, {"cost_center_id": "CC012", "cost_center_name": "Jakarta QTG Operations", "country": "Indonesia", "entity": "QTG", "status": "Active"}, {"cost_center_id": "CC013", "cost_center_name": "Ho Chi Minh City SPD Operations", "country": "Vietnam", "entity": "SPD", "status": "Active"}, {"cost_center_id": "CC014", "cost_center_name": "Ho Chi Minh City QTS Operations", "country": "Vietnam", "entity": "QTS", "status": "Active"}, {"cost_center_id": "CC015", "cost_center_name": "Ho Chi Minh City QTG Operations", "country": "Vietnam", "entity": "QTG", "status": "Active"}], "users": [{"user_id": "M001", "display_name": "Amy Tan", "role": "Requestor", "entity": "SPD", "country": "Singapore", "active": "Yes"}, {"user_id": "M002", "display_name": "Priya Shah", "role": "MDM Analyst", "entity": "SPD", "country": "Singapore", "active": "Yes"}, {"user_id": "M003", "display_name": "Wei Jie Lim", "role": "Finance", "entity": "QTS", "country": "Singapore", "active": "Yes"}, {"user_id": "M004", "display_name": "Daniel Wong", "role": "Business Unit Head", "entity": "SPD", "country": "Singapore", "active": "Yes"}, {"user_id": "M005", "display_name": "Siti Rahman", "role": "Quality/Regulatory", "entity": "QTG", "country": "Malaysia", "active": "Yes"}, {"user_id": "M006", "display_name": "Nur Aini", "role": "Business Support", "entity": "QTS", "country": "Malaysia", "active": "Yes"}, {"user_id": "M007", "display_name": "Marcus Lee", "role": "Requestor", "entity": "QTG", "country": "Thailand", "active": "Yes"}, {"user_id": "M008", "display_name": "Andre Putra", "role": "Business Unit Head", "entity": "QTG", "country": "Indonesia", "active": "Yes"}, {"user_id": "M009", "display_name": "Linh Nguyen", "role": "Finance", "entity": "SPD", "country": "Vietnam", "active": "Yes"}], "rules": [{"request_type": "Customer", "step_order": 1, "approver_role": "Business Unit Head", "requires_review": "Yes"}, {"request_type": "Customer", "step_order": 2, "approver_role": "Finance", "requires_review": "Yes"}, {"request_type": "Customer", "step_order": 3, "approver_role": "MDM Analyst", "requires_review": "Yes"}, {"request_type": "Item", "step_order": 1, "approver_role": "Quality/Regulatory", "requires_review": "Yes"}, {"request_type": "Item", "step_order": 2, "approver_role": "Business Unit Head", "requires_review": "Yes"}, {"request_type": "Item", "step_order": 3, "approver_role": "MDM Analyst", "requires_review": "Yes"}, {"request_type": "Vendor", "step_order": 1, "approver_role": "Procurement", "requires_review": "Yes"}, {"request_type": "Vendor", "step_order": 2, "approver_role": "Finance", "requires_review": "Yes"}, {"request_type": "Vendor", "step_order": 3, "approver_role": "MDM Analyst", "requires_review": "Yes"}, {"request_type": "Cost Center", "step_order": 1, "approver_role": "Finance", "requires_review": "Yes"}, {"request_type": "Cost Center", "step_order": 2, "approver_role": "MDM Analyst", "requires_review": "Yes"}], "fields": [{"domain": "Customer", "field": "customer_name", "label": "Customer name", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": "Official registered name of the hospital / lab / clinic"}, {"domain": "Customer", "field": "business_entity", "label": "Business entity", "type": "select", "options": ["QTG", "QTS", "SPD"], "required": true, "required_if": "", "sensitive": false, "help": "Which Lives Group entity will transact with this customer"}, {"domain": "Customer", "field": "country", "label": "Country", "type": "select", "options": ["Indonesia", "Malaysia", "Singapore", "Thailand", "Vietnam"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Customer", "field": "city", "label": "City", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Customer", "field": "customer_type", "label": "Customer type", "type": "select", "options": ["Clinic", "Hospital", "Laboratory"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Customer", "field": "registration_no", "label": "Registration number", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": "e.g. SG-REG-100123 - used to catch duplicates"}, {"domain": "Customer", "field": "contact_email", "label": "Contact email", "type": "email", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Customer", "field": "payment_terms", "label": "Payment terms", "type": "select", "options": ["30 days", "60 days", "90 days"], "required": true, "required_if": "", "sensitive": true, "help": "Visible to Finance only"}, {"domain": "Customer", "field": "credit_limit", "label": "Credit limit (SGD)", "type": "number", "options": [], "required": true, "required_if": "", "sensitive": true, "help": "Visible to Finance only"}, {"domain": "Item", "field": "item_name", "label": "Item name", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": "e.g. A - Diagnostic Reagent 4"}, {"domain": "Item", "field": "product_group", "label": "Product group", "type": "select", "options": ["Product A", "Product B", "Product C"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Item", "field": "category", "label": "Category", "type": "select", "options": ["Diagnostic equipment", "Diagnostic reagent", "Laboratory consumable"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Item", "field": "business_entity", "label": "Business entity", "type": "select", "options": ["QTG", "QTS", "SPD"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Item", "field": "manufacturer", "label": "Manufacturer", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Item", "field": "unit", "label": "Unit", "type": "select", "options": ["units"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Item", "field": "regulatory_status", "label": "Regulatory status", "type": "select", "options": ["Approved", "Pending"], "required": true, "required_if": "", "sensitive": false, "help": "Approved or pending registration in the target country"}, {"domain": "Item", "field": "storage_condition", "label": "Storage condition", "type": "select", "options": ["Ambient", "2-8 C", "-20 C"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Item", "field": "shelf_life_months", "label": "Shelf life (months)", "type": "number", "options": [], "required": false, "required_if": "category=Diagnostic reagent|Laboratory consumable", "sensitive": false, "help": "Required for reagents and consumables"}, {"domain": "Item", "field": "regulatory_licence_no", "label": "Regulatory licence number", "type": "text", "options": [], "required": false, "required_if": "category=Diagnostic reagent;product_group=Product C", "sensitive": false, "help": "Required for reagents and all Product C items"}, {"domain": "Vendor", "field": "vendor_name", "label": "Vendor name", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Vendor", "field": "business_entity", "label": "Business entity", "type": "select", "options": ["QTG", "QTS", "SPD"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Vendor", "field": "country", "label": "Country", "type": "select", "options": ["Indonesia", "Malaysia", "Singapore", "Thailand", "Vietnam"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Vendor", "field": "city", "label": "City", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Vendor", "field": "registration_no", "label": "Registration number", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Vendor", "field": "contact_email", "label": "Contact email", "type": "email", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Vendor", "field": "bank_name", "label": "Bank name", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": true, "help": "Visible to Finance only"}, {"domain": "Vendor", "field": "bank_account_no", "label": "Bank account number", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": true, "help": "Visible to Finance only"}, {"domain": "Vendor", "field": "swift_code", "label": "SWIFT code", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": true, "help": "8 or 11 characters"}, {"domain": "Vendor", "field": "payment_terms", "label": "Payment terms", "type": "select", "options": ["30 days", "60 days", "90 days"], "required": true, "required_if": "", "sensitive": true, "help": "Visible to Finance only"}, {"domain": "Cost Center", "field": "cost_center_name", "label": "Cost center name", "type": "text", "options": [], "required": true, "required_if": "", "sensitive": false, "help": "e.g. Singapore SPD Operations"}, {"domain": "Cost Center", "field": "entity", "label": "Business entity", "type": "select", "options": ["QTG", "QTS", "SPD"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Cost Center", "field": "country", "label": "Country", "type": "select", "options": ["Indonesia", "Malaysia", "Singapore", "Thailand", "Vietnam"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Cost Center", "field": "department", "label": "Department", "type": "select", "options": ["Sales", "Marketing", "Operations", "Finance", "Quality/Regulatory"], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Cost Center", "field": "budget_owner_email", "label": "Budget owner email", "type": "email", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}, {"domain": "Cost Center", "field": "effective_date", "label": "Effective date", "type": "date", "options": [], "required": true, "required_if": "", "sensitive": false, "help": ""}], "history": [{"id": "R029", "type": "Customer", "name": "New Medical Buyer 29", "requestor": "Employee 2", "entity": "QTS", "country": "Indonesia", "submitted": "2026-09-29 04:00", "status": "Returned for correction", "step": 0, "values": {}, "secret": {}, "note": "", "log": [["2026-09-29 04:00", "Employee 2", "Requestor", "Submitted"], ["2026-09-29 09:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-29 14:00", "MDM Team", "MDM Analyst", "Changes requested"]]}, {"id": "R030", "type": "Item", "name": "New Lab Test Item 30", "requestor": "Employee 3", "entity": "QTG", "country": "Vietnam", "submitted": "2026-09-30 05:00", "status": "Rejected", "step": 0, "values": {}, "secret": {}, "note": "", "log": [["2026-09-30 05:00", "Employee 3", "Requestor", "Submitted"], ["2026-09-30 10:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-30 15:00", "MDM Team", "MDM Analyst", "Rejected"]]}, {"id": "R031", "type": "Vendor", "name": "New Diagnostic Vendor 31", "requestor": "Employee 4", "entity": "SPD", "country": "Singapore", "submitted": "2026-09-01 06:00", "status": "Completed", "step": 3, "values": {}, "secret": {}, "note": "", "log": [["2026-09-01 06:00", "Employee 4", "Requestor", "Submitted"], ["2026-09-01 11:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-01 16:00", "MDM Team", "MDM Analyst", "Approved"], ["2026-09-01 21:00", "MDM Team", "MDM Analyst", "SAP handoff complete"]]}, {"id": "R032", "type": "Cost Center", "name": "New Regional Sales Center 32", "requestor": "Employee 5", "entity": "QTS", "country": "Malaysia", "submitted": "2026-09-02 07:00", "status": "Approved - SAP pending", "step": 2, "values": {}, "secret": {}, "note": "", "log": [["2026-09-02 07:00", "Employee 5", "Requestor", "Submitted"], ["2026-09-02 12:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-02 17:00", "MDM Team", "MDM Analyst", "Approved"]]}, {"id": "R033", "type": "Customer", "name": "New Medical Buyer 33", "requestor": "Employee 6", "entity": "QTG", "country": "Thailand", "submitted": "2026-09-03 00:00", "status": "Pending approval", "step": 1, "values": {}, "secret": {}, "note": "", "log": [["2026-09-03 00:00", "Employee 6", "Requestor", "Submitted"], ["2026-09-03 05:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-03 10:00", "MDM Team", "MDM Analyst", "Pending"]]}, {"id": "R034", "type": "Item", "name": "New Lab Test Item 34", "requestor": "Employee 7", "entity": "SPD", "country": "Indonesia", "submitted": "2026-09-04 01:00", "status": "Returned for correction", "step": 0, "values": {}, "secret": {}, "note": "", "log": [["2026-09-04 01:00", "Employee 7", "Requestor", "Submitted"], ["2026-09-04 06:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-04 11:00", "MDM Team", "MDM Analyst", "Changes requested"]]}, {"id": "R035", "type": "Vendor", "name": "New Diagnostic Vendor 35", "requestor": "Employee 8", "entity": "QTS", "country": "Vietnam", "submitted": "2026-09-05 02:00", "status": "Rejected", "step": 0, "values": {}, "secret": {}, "note": "", "log": [["2026-09-05 02:00", "Employee 8", "Requestor", "Submitted"], ["2026-09-05 07:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-05 12:00", "MDM Team", "MDM Analyst", "Rejected"]]}, {"id": "R036", "type": "Cost Center", "name": "New Regional Sales Center 36", "requestor": "Employee 9", "entity": "QTG", "country": "Singapore", "submitted": "2026-09-06 03:00", "status": "Completed", "step": 2, "values": {}, "secret": {}, "note": "", "log": [["2026-09-06 03:00", "Employee 9", "Requestor", "Submitted"], ["2026-09-06 08:00", "MDM Team", "MDM Analyst", "Validated"], ["2026-09-06 13:00", "MDM Team", "MDM Analyst", "Approved"], ["2026-09-06 18:00", "MDM Team", "MDM Analyst", "SAP handoff complete"]]}]};
+// Duplicate-matching logic (JavaScript port of request_form/mdm.py).
+// Name similarity 0-100, robust to abbreviations, word order, spacing and branch numbers.
+
+const ABBREVIATIONS = {
+  natl: "national", univ: "university", hosp: "hospital", intl: "international",
+  gen: "general", med: "medical", ctr: "centre", center: "centre", inst: "institute",
+  lab: "laboratory", labs: "laboratory", diag: "diagnostic", clinc: "clinic",
+  sg: "singapore", kl: "kuala lumpur", hcmc: "ho chi minh city", bkk: "bangkok",
+};
+const STOPWORDS = new Set(["pte", "ltd", "limited", "inc", "co", "the", "sdn", "bhd", "pt", "tbk"]);
+
+function normalise(name) {
+  const tokens = String(name || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
+  const out = [];
+  for (let t of tokens) {
+    t = ABBREVIATIONS[t] || t;
+    if (/^\d+$/.test(t)) t = String(parseInt(t, 10));
+    for (const part of t.split(" ")) if (!STOPWORDS.has(part)) out.push(part);
+  }
+  return out.join(" ");
+}
+
+// Indel-normalised similarity, same definition as rapidfuzz.fuzz.ratio
+function ratio(a, b) {
+  if (!a.length && !b.length) return 100;
+  const m = a.length, n = b.length;
+  let prev = new Array(n + 1).fill(0);
+  for (let i = 1; i <= m; i++) {
+    const cur = new Array(n + 1).fill(0);
+    for (let j = 1; j <= n; j++) {
+      cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] + 1 : Math.max(prev[j], cur[j - 1]);
+    }
+    prev = cur;
+  }
+  return (200 * prev[n]) / (m + n);
+}
+
+function tokenSortRatio(a, b) {
+  return ratio(a.split(" ").sort().join(" "), b.split(" ").sort().join(" "));
+}
+
+function tokenSetRatio(a, b) {
+  const sa = new Set(a.split(" ")), sb = new Set(b.split(" "));
+  const inter = [...sa].filter((t) => sb.has(t)).sort();
+  const diffAB = [...sa].filter((t) => !sb.has(t)).sort();
+  const diffBA = [...sb].filter((t) => !sa.has(t)).sort();
+  if (inter.length && (!diffAB.length || !diffBA.length)) return 100;
+  const sect = inter.join(" ");
+  const t1 = [sect, diffAB.join(" ")].filter(Boolean).join(" ");
+  const t2 = [sect, diffBA.join(" ")].filter(Boolean).join(" ");
+  return Math.max(sect ? ratio(sect, t1) : 0, sect ? ratio(sect, t2) : 0, ratio(t1, t2));
+}
+
+function similarity(x, y) {
+  const a = normalise(x), b = normalise(y);
+  if (!a || !b) return 0;
+  const mixed = (tokenSetRatio(a, b) + tokenSortRatio(a, b)) / 2;
+  let score = Math.max(mixed, ratio(a.replace(/ /g, ""), b.replace(/ /g, "")));
+  const na = new Set(a.split(" ").filter((t) => /^\d+$/.test(t)));
+  const nb = new Set(b.split(" ").filter((t) => /^\d+$/.test(t)));
+  const same = na.size === nb.size && [...na].every((t) => nb.has(t));
+  if (na.size && nb.size && !same) score *= 0.7;
+  return score;
+}
+
+// records: [{code, name, entity, country, reg_no}]
+function findDuplicates(records, name, regNo, country, limit = 5) {
+  if (!String(name || "").trim() && !String(regNo || "").trim()) return [];
+  const out = records.map((r) => {
+    let s = similarity(name, r.name), reason = "Similar name";
+    if (country && r.country && r.country !== country) s *= 0.8;
+    if (regNo && r.reg_no && r.reg_no.trim().toUpperCase() === String(regNo).trim().toUpperCase()) {
+      s = 100; reason = "Same registration no.";
+    }
+    return { ...r, score: Math.round(s), reason };
+  });
+  return out.filter((r) => r.score >= 75).sort((a, b) => b.score - a.score).slice(0, limit);
+}
+
+function duplicateLevel(score) {
+  return score >= 90 ? "block" : score >= 80 ? "warn" : "ok";
+}
+
+// module.exports = { normalise, similarity, findDuplicates, duplicateLevel };
+
+
+const DOMAINS = ["Customer", "Item", "Vendor", "Cost Center"];
+const NAME_FIELD = {Customer: "customer_name", Item: "item_name", Vendor: "vendor_name", "Cost Center": "cost_center_name"};
+const ID_PREFIX = {Customer: "C", Item: "I", Vendor: "V", "Cost Center": "CC"};
+const MASTER = {
+  Customer: DATA.customers.map(r => ({code: r.customer_id, name: r.customer_name, entity: r.business_entity, country: r.country, reg_no: r.registration_no || ""})),
+  Item: DATA.items.map(r => ({code: r.item_id, name: r.item_name, entity: "", country: "", reg_no: ""})),
+  Vendor: DATA.vendors.map(r => ({code: r.vendor_id, name: r.vendor_name, entity: r.business_entity, country: r.country, reg_no: ""})),
+  "Cost Center": DATA.cost_centers.map(r => ({code: r.cost_center_id, name: r.cost_center_name, entity: r.entity, country: r.country, reg_no: ""})),
+};
+
+const state = {tab: "new", domain: "Customer", values: {}, touched: new Set(), user: DATA.users[0], requests: [], override: false, overrideReason: ""};
+
+// Seed: a few team history requests (from mdm_requests.csv) plus Amy's item request from the brief
+state.requests = DATA.history.map(r => ({...r, history: true}));
+state.requests.push({
+  id: "R037", type: "Item", name: "Glucose Control Solution L1/L2", requestor: "Amy Tan", entity: "SPD", country: "Singapore",
+  submitted: "2026-10-24 09:00", status: "Pending approval", step: 1, values: {item_name: "Glucose Control Solution L1/L2", product_group: "Product A", category: "Laboratory consumable", business_entity: "SPD", unit: "units", regulatory_status: "Approved"},
+  log: [["2026-10-24 09:00", "Amy Tan", "Requestor", "Submitted"], ["2026-10-24 15:20", "Siti Rahman", "Quality/Regulatory", "Approved"]], secret: {},
+});
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const now = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
+function conditionMet(cond, values) {
+  cond = (cond || "").trim();
+  if (!cond) return true;
+  return cond.split(";").some(clause => {
+    const i = clause.indexOf("=");
+    if (i < 0) return false;
+    const f = clause.slice(0, i).trim(), opts = clause.slice(i + 1).split("|").map(s => s.trim());
+    return opts.includes(String(values[f] ?? "").trim());
+  });
+}
+const isRequired = (rule, values) => rule.required || (rule.required_if && conditionMet(rule.required_if, values));
+const rulesFor = d => DATA.fields.filter(r => r.domain === d);
+const routeFor = d => DATA.rules.filter(r => r.request_type === d).sort((a, b) => a.step_order - b.step_order);
+
+function validate(domain, values) {
+  const out = [];
+  for (const r of rulesFor(domain)) {
+    const v = values[r.field];
+    const empty = v === undefined || String(v).trim() === "";
+    if (isRequired(r, values) && empty) { out.push(r.label + " is required"); continue; }
+    if (empty) continue;
+    if (r.type === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) out.push(r.label + " is not a valid email");
+    if (r.field === "swift_code" && !/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(String(v).toUpperCase())) out.push("SWIFT code must be 8 or 11 letters/digits");
+    if (r.type === "number" && Number(v) <= 0) out.push(r.label + " must be greater than 0");
+  }
+  return out;
+}
+
+function userFor(role) {
+  const u = DATA.users.find(x => x.role === role);
+  return u ? u.display_name : role + " team";
+}
+
+function toast(title, body) {
+  const t = document.getElementById("toast");
+  t.innerHTML = `<b>${esc(title)}</b>${esc(body)}`;
+  t.style.display = "block";
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => (t.style.display = "none"), 4200);
+}
+
+// ---------- New request ----------
+function renderNew() {
+  const d = state.domain, rules = rulesFor(d), v = state.values;
+  const fieldHtml = rules.map(r => {
+    const req = isRequired(r, v);
+    const id = "f_" + r.field;
+    const val = v[r.field] ?? "";
+    let input;
+    if (r.type === "select") {
+      input = `<select id="${id}" data-f="${r.field}"><option value=""></option>${r.options.map(o => `<option ${o === val ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+    } else {
+      const type = r.sensitive ? "password" : r.type === "number" ? "number" : r.type === "date" ? "date" : r.type === "email" ? "email" : "text";
+      input = `<input id="${id}" data-f="${r.field}" type="${type}" value="${esc(val)}" autocomplete="off">`;
+    }
+    return `<div class="field" data-wrap="${r.field}"><label for="${id}">${esc(r.label)}${req ? ' <span class="req">*</span>' : ""}${r.sensitive ? ' <span class="lock">Finance only</span>' : ""}</label>${input}${r.help ? `<div class="help">${esc(r.help)}</div>` : ""}</div>`;
+  }).join("");
+
+  document.getElementById("content").innerHTML = `
+  <div class="grid2">
+    <div class="card">
+      <h2>New master data request</h2>
+      <p class="sub">One form for every request type. Fields, required rules and approvers come from tables the MDM team maintains.</p>
+      <div class="seg" role="radiogroup" aria-label="Request type">${DOMAINS.map(x => `<button data-dom="${x}" class="${x === d ? "on" : ""}" role="radio" aria-checked="${x === d}">${x}</button>`).join("")}</div>
+      <div class="fields">${fieldHtml}</div>
+    </div>
+    <div class="card checks" id="checks"></div>
+  </div>`;
+
+  document.querySelectorAll("[data-dom]").forEach(b => b.onclick = () => { state.domain = b.dataset.dom; state.values = {}; state.touched = new Set(); state.override = false; state.overrideReason = ""; renderNew(); });
+  document.querySelectorAll("[data-f]").forEach(el => {
+    const handler = () => {
+      state.values[el.dataset.f] = el.value;
+      state.touched.add(el.dataset.f);
+      if (el.tagName === "SELECT") renderNew(); else renderChecks();
+    };
+    el.addEventListener(el.tagName === "SELECT" ? "change" : "input", handler);
+  });
+  renderChecks();
+}
+
+function renderChecks() {
+  const d = state.domain, v = state.values;
+  const name = v[NAME_FIELD[d]] || "", reg = v.registration_no || "";
+  const dupes = findDuplicates(MASTER[d].concat(state.created?.[d] || []), name, reg, v.country || "");
+  const level = dupes.length ? duplicateLevel(dupes[0].score) : "ok";
+  const problems = validate(d, v);
+  document.querySelectorAll("[data-wrap]").forEach(w => {
+    const f = w.dataset.wrap, label = rulesFor(d).find(r => r.field === f).label;
+    const bad = problems.some(p => p.startsWith(label));
+    const show = state.touched.has(f) || String(v[f] ?? "").trim() !== "";
+    w.classList.toggle("missing", bad && show);
+  });
+
+  let dupHtml;
+  if (!name && !reg) dupHtml = `<div class="alert info">Start typing a name to check SAP B1 for existing records.</div>`;
+  else if (!dupes.length) dupHtml = `<div class="alert ok">No similar records found in SAP B1.</div>`;
+  else dupHtml = `<div class="alert ${level === "block" ? "bad" : "warn"}">${level === "ok" ? "Similar records exist" : "Possible duplicate found"} - please check before submitting.</div>
+    <table><thead><tr><th>Code</th><th>Name</th><th>Entity</th><th>Match</th></tr></thead><tbody>
+    ${dupes.map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}<br><span style="color:var(--muted);font-size:12px">${esc(x.reason)}</span></td><td>${esc(x.entity || "-")}</td><td>${x.score}%</td></tr>`).join("")}</tbody></table><div style="height:12px"></div>`;
+
+  const probHtml = problems.length
+    ? `<div class="alert warn"><b>Missing or invalid</b><ul>${problems.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>`
+    : `<div class="alert ok">All required fields complete.</div>`;
+  const route = routeFor(d);
+  const routeHtml = `<h3>Approval route</h3><ol class="route">${route.map(r => `<li><span class="n">${r.step_order}</span><span>${esc(r.approver_role)} <span style="color:var(--muted)">- ${esc(userFor(r.approver_role))}, reminder after ${r.step_order == route.length ? 24 : 48} h</span></span></li>`).join("")}</ol>`;
+
+  const overrideHtml = level === "block" ? `<div class="override"><label><input type="checkbox" id="ovr" ${state.override ? "checked" : ""}> I confirmed this is NOT the same record</label>${state.override ? `<input type="text" id="ovrr" placeholder="Reason (shown to the MDM team)" value="${esc(state.overrideReason)}">` : ""}</div>` : "";
+  const canSubmit = !problems.length && (level !== "block" || (state.override && state.overrideReason.trim()));
+
+  const box = document.getElementById("checks");
+  box.innerHTML = `<h3>Live checks</h3>${dupHtml}${probHtml}${routeHtml}${overrideHtml}<button class="btn wide" id="submit" ${canSubmit ? "" : "disabled"}>Submit request</button>`;
+  const ovr = document.getElementById("ovr");
+  if (ovr) ovr.onchange = () => { state.override = ovr.checked; renderChecks(); };
+  const ovrr = document.getElementById("ovrr");
+  if (ovrr) { ovrr.oninput = () => { state.overrideReason = ovrr.value; document.getElementById("submit").disabled = !(validate(d, v).length === 0 && ovrr.value.trim()); }; }
+  document.getElementById("submit").onclick = () => submit(dupes, level);
+}
+
+function submit(dupes, level) {
+  const d = state.domain, v = {...state.values};
+  const nums = state.requests.map(r => parseInt(r.id.slice(1), 10)).filter(n => !isNaN(n));
+  const id = "R" + String(Math.max(0, ...nums) + 1).padStart(3, "0");
+  const sensitive = rulesFor(d).filter(r => r.sensitive).map(r => r.field);
+  const secret = {}, pub = {};
+  for (const [k, val] of Object.entries(v)) (sensitive.includes(k) ? secret : pub)[k] = val;
+  const route = routeFor(d);
+  state.requests.push({
+    id, type: d, name: v[NAME_FIELD[d]], requestor: state.user.display_name, entity: v.business_entity || v.entity || "",
+    country: v.country || "", submitted: now(), status: "Pending approval", step: 0, values: pub, secret,
+    note: level === "block" ? "Duplicate override: " + state.overrideReason + " (closest: " + dupes[0].code + ")" : "",
+    log: [[now(), state.user.display_name, "Requestor", "Submitted"]],
+  });
+  state.values = {}; state.touched = new Set(); state.override = false; state.overrideReason = "";
+  toast("Request " + id + " submitted", "Approval request sent in Teams to " + userFor(route[0].approver_role) + " (" + route[0].approver_role + ").");
+  state.tab = "mine"; render();
+}
+
+// ---------- My requests / Approvals ----------
+function stepper(r) {
+  const route = routeFor(r.type);
+  return `<div class="stepper">${route.map((s, i) => {
+    let cls = "", w = "Pending";
+    if (r.status === "Completed" || r.status === "Approved - SAP pending" || i < r.step) { cls = "done"; w = "Approved"; }
+    else if (i === r.step && r.status === "Rejected") { cls = "stop"; w = "Rejected"; }
+    else if (i === r.step && r.status === "Returned for correction") { cls = "stop"; w = "Returned"; }
+    else if (i === r.step) { cls = "now"; w = "Waiting - " + userFor(s.approver_role); }
+    return `<div class="step ${cls}"><span class="dot"></span><div class="r">${esc(s.approver_role)}</div><div class="w">${esc(w)}</div></div>`;
+  }).join("")}<div class="step ${r.status === "Completed" ? "done" : r.status === "Approved - SAP pending" ? "now" : ""}"><span class="dot"></span><div class="r">SAP B1</div><div class="w">${r.status === "Completed" ? esc(r.sap || "Created") : r.status === "Approved - SAP pending" ? "Ready for handoff" : "-"}</div></div></div>`;
+}
+
+const STATUS_PILL = {"Pending approval": "info", "Approved - SAP pending": "warn", "Completed": "ok", "Rejected": "bad", "Returned for correction": "warn"};
+
+function reqCard(r, actions) {
+  const done = r.status === "Completed" || r.status === "Approved - SAP pending" ? routeFor(r.type).length : r.step;
+  return `<div class="reqcard">
+    <div class="reqhead"><div><div class="t">${esc(r.id)} - ${esc(r.type)}: ${esc(r.name)}</div>
+    <div class="m">${esc(r.entity)} &middot; ${esc(r.country)} &middot; by ${esc(r.requestor)} &middot; submitted ${esc(r.submitted)}${r.history ? " &middot; team history" : ""}</div></div>
+    <div class="s"><span class="pill ${STATUS_PILL[r.status] || "grey"}">${esc(r.status)} (${done}/${routeFor(r.type).length})</span></div></div>
+    ${stepper(r)}
+    ${r.note ? `<div class="alert warn" style="margin-top:10px">${esc(r.note)}</div>` : ""}
+    ${actions || ""}
+    ${r.log && r.log.length ? `<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--muted);font-size:12px">Audit trail</summary><table style="margin-top:6px"><thead><tr><th>Time</th><th>Who</th><th>Role</th><th>Action</th></tr></thead><tbody>${r.log.map(l => `<tr>${l.map(x => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></details>` : ""}
+  </div>`;
+}
+
+function renderMine() {
+  const all = state.mineAll;
+  const list = state.requests.filter(r => all || r.requestor === state.user.display_name).slice().reverse();
+  document.getElementById("content").innerHTML = `
+    <div class="toolbar"><label class="row"><input type="checkbox" id="allreq" ${all ? "checked" : ""}> Show all requests (including team history)</label></div>
+    ${list.length ? list.map(r => reqCard(r)).join("") : `<div class="card empty">No requests for ${esc(state.user.display_name)} yet. Switch "Signed in as" or submit one from New request.</div>`}`;
+  document.getElementById("allreq").onchange = e => { state.mineAll = e.target.checked; renderMine(); };
+}
+
+function waitingOnMe() {
+  const role = state.user.role;
+  return state.requests.filter(r => {
+    if (r.status === "Approved - SAP pending") return role === "MDM Analyst";
+    if (r.status !== "Pending approval") return false;
+    const step = routeFor(r.type)[r.step];
+    return step && step.approver_role === role;
+  });
+}
+
+function renderApprovals() {
+  const list = waitingOnMe();
+  const isFinance = state.user.role === "Finance";
+  document.getElementById("content").innerHTML = `
+    <p class="sub">Requests waiting on <b>${esc(state.user.display_name)}</b> (${esc(state.user.role)}). In production these arrive as approval cards in Teams and Outlook.</p>
+    ${list.length ? list.map(r => {
+      const lab = k => (rulesFor(r.type).find(x => x.field === k) || {label: k.replace(/_/g, " ")}).label;
+      const details = Object.entries(r.values || {}).map(([k, val]) => `<div>${esc(lab(k))}</div><div>${esc(val)}</div>`).join("");
+      const secrets = Object.keys(r.secret || {}).length ? Object.entries(r.secret).map(([k, val]) => `<div>${esc(lab(k))}</div><div>${isFinance ? esc(val) : "&#8226;&#8226;&#8226;&#8226;&#8226;&#8226; (Finance only)"}</div>`).join("") : "";
+      const sap = r.status === "Approved - SAP pending";
+      const actions = `<div class="kv">${details}${secrets}</div>
+        <div class="row">${sap ? `<button class="btn" data-sap="${r.id}">Create record in SAP B1</button>` : `<button class="btn" data-ok="${r.id}">Approve</button><button class="btn danger" data-no="${r.id}">Reject</button>`}</div>`;
+      return reqCard(r, actions);
+    }).join("") : `<div class="card empty">Nothing waiting on you. Try signing in as another approver, e.g. Daniel Wong (Business Unit Head), Wei Jie Lim (Finance) or Priya Shah (MDM Analyst).</div>`}`;
+  document.querySelectorAll("[data-ok]").forEach(b => b.onclick = () => decide(b.dataset.ok, true));
+  document.querySelectorAll("[data-no]").forEach(b => b.onclick = () => decide(b.dataset.no, false));
+  document.querySelectorAll("[data-sap]").forEach(b => b.onclick = () => createInSap(b.dataset.sap));
+}
+
+function decide(id, ok) {
+  const r = state.requests.find(x => x.id === id), route = routeFor(r.type);
+  if (!ok) {
+    const reason = prompt("Reason for rejecting (sent to the requestor):", "");
+    if (reason === null) return;
+    r.status = "Rejected"; r.note = "Rejected by " + state.user.display_name + ": " + reason;
+    r.log.push([now(), state.user.display_name, state.user.role, "Rejected"]);
+    toast(id + " rejected", "The requestor has been notified in Teams.");
+  } else {
+    r.log.push([now(), state.user.display_name, state.user.role, "Approved"]);
+    r.step += 1;
+    if (r.step >= route.length) { r.status = "Approved - SAP pending"; toast(id + " fully approved", "Handed to the MDM team for SAP B1 creation."); }
+    else toast(id + " approved", "Next: " + userFor(route[r.step].approver_role) + " (" + route[r.step].approver_role + ") notified in Teams.");
+  }
+  render();
+}
+
+function createInSap(id) {
+  const r = state.requests.find(x => x.id === id), prefix = ID_PREFIX[r.type];
+  const pool = MASTER[r.type].concat(state.created?.[r.type] || []);
+  const nums = pool.map(x => parseInt(x.code.slice(prefix.length), 10)).filter(n => !isNaN(n));
+  const width = Math.max(...pool.map(x => x.code.length - prefix.length), 3);
+  const code = prefix + String(Math.max(0, ...nums) + 1).padStart(width, "0");
+  state.created = state.created || {};
+  (state.created[r.type] = state.created[r.type] || []).push({code, name: r.name, entity: r.entity, country: r.country, reg_no: (r.values || {}).registration_no || ""});
+  r.status = "Completed"; r.sap = code;
+  r.log.push([now(), state.user.display_name, "MDM Analyst", "SAP handoff complete (" + code + ")"]);
+  toast("Created in SAP B1 (mock): " + code, r.requestor + " has been notified that the record is ready to use.");
+  render();
+}
+
+// ---------- About ----------
+function renderAbout() {
+  document.getElementById("content").innerHTML = `<div class="card">
+    <h2>How this works in production</h2>
+    <p class="sub">This page is a mock-up for the competition. Our team has no Power Apps licence, so the form logic is shown here on synthetic data.</p>
+    <div class="flow">
+      <div><b>1. Power Apps form in Teams</b>Type-specific fields, required rules, live duplicate check</div>
+      <div><b>2. SharePoint list</b>Stores each request; sensitive fields in a Finance-only list</div>
+      <div><b>3. Power Automate</b>Routes approvals by rule; reminders after 48 h</div>
+      <div><b>4. Teams / Outlook</b>Approvers approve in one click; full audit trail</div>
+      <div><b>5. SAP B1</b>MDM analyst creates the record; requestor is notified</div>
+    </div>
+    <h3>What is real in this mock-up</h3>
+    <ul>
+      <li>Master data, users and approval routes come from our team data package (customers, items, vendors, cost_centers, users_and_roles, approval_rules).</li>
+      <li>The duplicate check uses the same algorithm as our Python prototype: on the seeded test data it finds all 11 alias customers with 0 false alarms, and all 3 duplicate item codes.</li>
+      <li>Field rules (labels, required, "required if", Finance-only) are a table, so the MDM team can change them without IT.</li>
+    </ul>
+    <h3>Try it</h3>
+    <ol>
+      <li>Customer: type "KL Medical Center 2" - submit is blocked by a likely duplicate.</li>
+      <li>Item: choose category "Diagnostic reagent" - shelf life and licence number become required.</li>
+      <li>Submit a request, then sign in as the approver shown and approve it in the Approvals tab.</li>
+      <li>Sign in as Priya Shah (MDM Analyst) to create the record in SAP B1 - it gets the next code, e.g. I014.</li>
+    </ol></div>`;
+}
+
+// ---------- shell ----------
+function render() {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
+  const n = waitingOnMe().length, badge = document.getElementById("apbadge");
+  badge.hidden = !n; badge.textContent = n;
+  ({new: renderNew, mine: renderMine, approvals: renderApprovals, about: renderAbout})[state.tab]();
+}
+
+const who = document.getElementById("who");
+who.innerHTML = DATA.users.map((u, i) => `<option value="${i}">${esc(u.display_name)} - ${esc(u.role)}</option>`).join("");
+who.onchange = () => {
+  state.user = DATA.users[who.value];
+  document.getElementById("avatar").textContent = state.user.display_name.split(" ").map(s => s[0]).join("").slice(0, 2);
+  render();
+};
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
+render();
+</script>
+</body>
+</html>
