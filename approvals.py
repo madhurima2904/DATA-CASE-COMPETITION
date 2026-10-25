@@ -90,3 +90,48 @@ def update_request(request_id):
     reqs.loc[reqs["request_id"] == request_id, ["status", "current_step"]] = [status, step]
     reqs.to_csv(REQUESTS, index=False)
     return status, step
+
+# ---------- Reminders ----------
+NOTICES = ["Reminder sent", "Escalated"]
+
+def hours_waiting(request_id):
+    """Hours since the last real action (reminders don't reset the clock)."""
+    logs = load(LOGS)
+    logs = logs[(logs["request_id"] == request_id) & (~logs["action"].isin(NOTICES))]
+    last = pd.to_datetime(logs["event_time"]).max()
+    return (datetime.now() - last).total_seconds() / 3600
+
+
+def overdue_list():
+    rows = []
+    for rid in load(REQUESTS).query("status == 'Pending approval'")["request_id"]:
+        _, current = progress(rid)
+        if current.empty:
+            continue
+        sla = current["sla_hours"].astype(float).min()
+        hrs = hours_waiting(rid)
+        if hrs > sla:
+            rows.append({
+                "request_id": rid,
+                "waiting_on": " + ".join(current["approver_role"]),
+                "hours_waiting": round(hrs),
+                "sla_hours": int(sla),
+                "escalate": hrs > 2 * sla,
+            })
+    return pd.DataFrame(rows)
+
+
+def send_reminders():
+    """Log a reminder (or escalation) once per overdue request."""
+    sent = 0
+    logs = load(LOGS)
+    for _, r in overdue_list().iterrows():
+        last_action = logs[logs["request_id"] == r["request_id"]].iloc[-1]["action"]
+        if last_action in NOTICES:
+            continue                        # already reminded, don't spam
+        action = "Escalated" if r["escalate"] else "Reminder sent"
+        for role in r["waiting_on"].split(" + "):
+            add_log(r["request_id"], "system", role, action,
+                    f"Waiting {r['hours_waiting']}h, SLA {r['sla_hours']}h")
+        sent += 1
+    return sent
