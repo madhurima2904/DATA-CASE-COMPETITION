@@ -305,6 +305,7 @@ def build_dataset():
             (md["confirmed_units"] < md[f"{name}_lower"])
             | (md["confirmed_units"] > md[f"{name}_upper"])
         )
+        md[f"{name}_breach"] = outside
         md[f"{name}_flag"] = outside | md["enq_flag"]
 
     return md, keys
@@ -460,35 +461,14 @@ with c2:
         forecast_bars("lr", "Linear Regression", C_LR)
 
 
-# ==========================================================
-# EXCEPTION FLAGS BY MONTH
-# ==========================================================
-
-with st.container(border=True):
-    section_title(
-        "Flagged Series by Month",
-        "Count of series outside the band or with an enquiry spike.",
-    )
-
-    counts = df.groupby("month")[["ma_flag", "lr_flag"]].sum().reset_index()
-
-    fig = go.Figure()
-    fig.add_bar(x=counts["month"], y=counts["ma_flag"],
-                name="MA6 flags", marker_color=C_MA)
-    fig.add_bar(x=counts["month"], y=counts["lr_flag"],
-                name="Linear regression flags", marker_color=C_LR)
-    fig.update_layout(barmode="group")
-    show_plot(fig, height=300)
-
 
 # ==========================================================
 # TREND FOR ONE SERIES
 # ==========================================================
-
 with st.container(border=True):
     section_title(
         "Trend for One Series",
-        "Actual units against both forecasts across all months.",
+        "Actual units against the linear regression forecast across all months.",
     )
 
     ts_df = df.copy()
@@ -502,26 +482,42 @@ with st.container(border=True):
         ts = ts_df[ts_df["label"] == choice].sort_values("month")
 
         fig = go.Figure()
+
+        # Band: upper line first, then lower line filled up to it
+        fig.add_scatter(
+            x=ts["month"], y=ts["lr_upper"], mode="lines",
+            line=dict(width=0), showlegend=False, hoverinfo="skip",
+        )
+        fig.add_scatter(
+            x=ts["month"], y=ts["lr_lower"], mode="lines",
+            line=dict(width=0), fill="tonexty",
+            fillcolor="rgba(137,128,218,0.15)",
+            name=f"±{K}σ band",
+        )
+
         fig.add_scatter(
             x=ts["month"], y=ts["confirmed_units"], mode="lines+markers",
             name="Actual", line=dict(color=C_ACTUAL, width=2.5),
         )
         fig.add_scatter(
-            x=ts["month"], y=ts["ma_pred"], mode="lines+markers",
-            name="6M Moving Avg", line=dict(color=C_MA, dash="dash"),
-        )
-        fig.add_scatter(
             x=ts["month"], y=ts["lr_pred"], mode="lines+markers",
             name="Linear Regression", line=dict(color=C_LR, dash="dash"),
         )
-        flagged_ma = ts[ts["ma_flag"]]
+
+        breach = ts[ts["lr_breach"]]
         fig.add_scatter(
-            x=flagged_ma["month"], y=flagged_ma["confirmed_units"],
-            mode="markers", name="Flagged (MA6)",
+            x=breach["month"], y=breach["confirmed_units"],
+            mode="markers", name="Outside band (LR)",
             marker=dict(color=C_FLAG, size=11, symbol="x"),
         )
-        show_plot(fig, height=340)
 
+        spike = ts[ts["enq_flag"]]
+        fig.add_scatter(
+            x=spike["month"], y=spike["confirmed_units"],
+            mode="markers", name="Enquiry spike",
+            marker=dict(color="#F5A623", size=11, symbol="diamond"),
+        )
+        show_plot(fig, height=340)
 
 # ==========================================================
 # FLAGGED SERIES TABLE
