@@ -143,7 +143,7 @@ def page_tracker():
     if view == "My requests":
         df = df[df["requestor"] == me["display_name"]]
     elif view == "Waiting on me":
-        df = df[[mdm.current_role(r, roles) == me["role"] for r in df.to_dict("records")]]
+        df = df[[me["role"] in mdm.waiting_roles(r) for r in df.to_dict("records")]]
 
     c1, c2, c3 = st.columns(3)
     types = c1.multiselect("Type", mdm.DOMAINS)
@@ -186,7 +186,7 @@ def page_tracker():
                 label = ("Demo: MDM posts to SAP B1" if row["status"] == "Approved - SAP pending"
                          else "Demo: approve current step")
                 if st.button(label, key=f"adv_{row['request_id']}"):
-                    mdm.demo_approve(row["request_id"], users)
+                    mdm.demo_approve(row["request_id"], users, me["role"])
                     st.rerun()
     if len(df) > 15:
         st.caption(f"Showing the latest 15 of {len(df)} requests - use the filters to narrow down.")
