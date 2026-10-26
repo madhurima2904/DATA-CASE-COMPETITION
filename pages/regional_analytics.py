@@ -563,33 +563,6 @@ def growth_analysis(df, months):
     )
 
 
-# ==========================================================
-# SIDEBAR
-# ==========================================================
-
-with st.sidebar:
-
-    st.markdown(
-        """
-        <h2 style="color:#eef3ff;margin-bottom:0">
-            Lives<span style="color:#79abff">Flow</span>
-        </h2>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.caption("OPERATIONS INTELLIGENCE")
-
-    st.divider()
-
-    st.markdown("**REGIONAL ANALYTICS**")
-
-    st.caption(
-        "Performance, opportunities and entities"
-    )
-
-    st.divider()
-
 
 
 # ==========================================================

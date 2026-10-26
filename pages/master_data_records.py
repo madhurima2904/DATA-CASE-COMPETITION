@@ -1,4 +1,34 @@
 
+"""
+LivesFlow — Master Data Management
+
+Connected workflows:
+    Request Form
+        -> Approval Management
+        -> Master Data Records
+        -> Simulated SAP Business One
+
+Data sources:
+    data/raw/mdm_requests.csv
+    data/raw/approval_logs.csv
+
+    mdm_request_form/request_form/data/new_requests.csv
+    mdm_request_form/request_form/data/new_approval_logs.csv
+    mdm_request_form/request_form/data/new_payloads.csv
+
+    data/demo/mdm_requests.csv
+    data/demo/approval_logs.csv
+
+Final review history:
+    data/processed/mock_sap_handoffs.sqlite3
+
+Important:
+    - Original data/raw CSV files are read-only.
+    - SAP handoffs are simulations.
+    - The app does not connect to a real SAP system.
+    - Keep this page registered in your main app.py.
+"""
+
 from pathlib import Path
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
@@ -12,28 +42,25 @@ import streamlit as st
 
 
 # ============================================================
-# LIVESFLOW — MASTER DATA MANAGEMENT
+# PATHS AND CONFIGURATION
 # ============================================================
-# Connected to:
-# 1. The original team request and approval CSV files
-# 2. Your friend's Streamlit request/approval prototype
-#
-# Only "Approved - SAP pending" requests enter the queue.
-#
-# SAP Business One is SIMULATED, not connected to a live SAP.
-# ============================================================
-
 
 ROOT = Path(__file__).resolve().parents[1]
+
 RAW = ROOT / "data" / "raw"
+DEMO = ROOT / "data" / "demo"
+
+FORM_DATA = (
+    ROOT
+    / "mdm_request_form"
+    / "request_form"
+    / "data"
+)
+
 PROCESSED = ROOT / "data" / "processed"
+DATABASE = PROCESSED / "mock_sap_handoffs.sqlite3"
 
-FORM = ROOT / "mdm_request_form" / "request_form"
-FORM_DATA = FORM / "data"
-
-DB = PROCESSED / "mock_sap_handoffs.sqlite3"
-
-REQUEST_COLS = [
+REQUEST_COLUMNS = [
     "request_id",
     "submitted_at",
     "request_type",
@@ -47,7 +74,7 @@ REQUEST_COLS = [
     "notes",
 ]
 
-LOG_COLS = [
+LOG_COLUMNS = [
     "event_id",
     "request_id",
     "event_time",
@@ -57,32 +84,60 @@ LOG_COLS = [
     "comments",
 ]
 
-MASTER_FILES = {
-    "Customer": ("customers.csv", "customer_id", "customer_name"),
-    "Item": ("items.csv", "item_id", "item_name"),
-    "Vendor": ("vendors.csv", "vendor_id", "vendor_name"),
-    "Cost Center": (
-        "cost_centers.csv",
-        "cost_center_id",
-        "cost_center_name",
-    ),
+MASTER_CONFIG = {
+    "Customer": {
+        "file": "customers.csv",
+        "id": "customer_id",
+        "name": "customer_name",
+        "prefix": "C",
+    },
+    "Item": {
+        "file": "items.csv",
+        "id": "item_id",
+        "name": "item_name",
+        "prefix": "I",
+    },
+    "Vendor": {
+        "file": "vendors.csv",
+        "id": "vendor_id",
+        "name": "vendor_name",
+        "prefix": "V",
+    },
+    "Cost Center": {
+        "file": "cost_centers.csv",
+        "id": "cost_center_id",
+        "name": "cost_center_name",
+        "prefix": "CC",
+    },
 }
 
-PREFIX = {
-    "Customer": "C",
-    "Item": "I",
-    "Vendor": "V",
-    "Cost Center": "CC",
+APPROVED_STATUS = "Approved - SAP pending"
+COMPLETED_STATUS = "Completed"
+RETURNED_STATUS = "Returned for correction"
+
+REQUEST_SOURCES = {
+    "Team History": RAW / "mdm_requests.csv",
+    "Request Form": FORM_DATA / "new_requests.csv",
+    "Approval Management": DEMO / "mdm_requests.csv",
+}
+
+LOG_SOURCES = {
+    "Team History": RAW / "approval_logs.csv",
+    "Request Form": FORM_DATA / "new_approval_logs.csv",
+    "Approval Management": DEMO / "approval_logs.csv",
 }
 
 
 # ============================================================
-# DESIGN
+# PAGE STYLING
 # ============================================================
 
 st.markdown(
     """
     <style>
+
+    /* Main page */
+
     [data-testid="stAppViewContainer"],
     [data-testid="stMain"] {
         background: #f5f7fb !important;
@@ -98,11 +153,6 @@ st.markdown(
         padding-bottom: 3rem;
     }
 
-    [data-testid="stSidebar"],
-    [data-testid="stSidebarContent"] {
-        background: #14243b !important;
-    }
-
     [data-testid="stMain"] h1,
     [data-testid="stMain"] h2,
     [data-testid="stMain"] h3 {
@@ -114,24 +164,31 @@ st.markdown(
         color: #344158;
     }
 
+    /* Do not add sidebar logos here.
+       The main app.py controls LivesFlow branding. */
+
+    /* Metrics */
+
     [data-testid="stMetric"] {
         background: transparent !important;
         border: 1px solid #dce4ef !important;
         border-radius: 13px !important;
-        padding: 16px !important;
+        padding: 15px !important;
         box-shadow: none !important;
     }
 
     [data-testid="stMetricLabel"] p {
-        color: #68788f !important;
+        color: #66758c !important;
         font-size: 13px !important;
     }
 
     [data-testid="stMetricValue"],
     [data-testid="stMetricValue"] * {
         color: #253249 !important;
-        font-size: 28px !important;
+        font-size: 27px !important;
     }
+
+    /* Containers */
 
     [data-testid="stVerticalBlockBorderWrapper"],
     [data-testid="stVerticalBlockBorderWrapper"] > div {
@@ -144,9 +201,11 @@ st.markdown(
         border-radius: 13px !important;
     }
 
+    /* Tabs */
+
     [data-baseweb="tab-list"] {
         background: transparent !important;
-        border-bottom: 1px solid #dce4ef;
+        border-bottom: 1px solid #dce4ef !important;
     }
 
     button[data-baseweb="tab"] {
@@ -163,18 +222,23 @@ st.markdown(
         background: #386fe5 !important;
     }
 
+    /* Inputs */
+
     [data-baseweb="select"] > div,
     [data-testid="stTextInput"] input,
     [data-testid="stTextArea"] textarea {
-        background: rgba(255,255,255,0.45) !important;
+        background: rgba(255, 255, 255, 0.45) !important;
         color: #253249 !important;
+        border-color: #dce4ef !important;
         border-radius: 9px !important;
     }
+
+    /* Transparent tables */
 
     .lf-table-wrap {
         width: 100%;
         overflow-x: auto;
-        background: transparent;
+        background: transparent !important;
         border: 1px solid #dce4ef;
         border-radius: 11px;
         margin: 12px 0 20px;
@@ -205,8 +269,8 @@ st.markdown(
     }
 
     .lf-table td {
-        padding: 12px 13px;
         color: #253249;
+        padding: 12px 13px;
         border-bottom: 1px solid #e2e8f1;
     }
 
@@ -214,25 +278,34 @@ st.markdown(
         border-bottom: none;
     }
 
+    .lf-table tr:hover td {
+        background: rgba(56, 111, 229, 0.04) !important;
+    }
+
+    /* Sections */
+
     .lf-section {
         color: #253249;
         font-weight: 700;
         font-size: 17px;
-        margin: 18px 0 6px;
+        margin: 20px 0 6px;
     }
 
     .lf-subtitle {
-        font-size: 13px;
         color: #718096;
+        font-size: 13px;
         margin-bottom: 12px;
     }
+
+    /* Primary buttons */
 
     [data-testid="stBaseButton-primary"] {
         background: #386fe5 !important;
         border: none !important;
-        color: white !important;
+        color: #ffffff !important;
         border-radius: 9px !important;
     }
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -240,11 +313,11 @@ st.markdown(
 
 
 # ============================================================
-# GENERAL HELPERS
+# HELPER FUNCTIONS
 # ============================================================
 
 def clean(value):
-    if value is None:
+    if value is None or pd.isna(value):
         return ""
     return str(value).strip()
 
@@ -253,6 +326,12 @@ def normalize(value):
     value = clean(value).casefold()
     value = re.sub(r"[^a-z0-9 ]", " ", value)
     return " ".join(value.split())
+
+
+def now():
+    return datetime.now(
+        timezone.utc
+    ).isoformat(timespec="seconds")
 
 
 def read_csv(path, columns=None):
@@ -265,21 +344,22 @@ def read_csv(path, columns=None):
         keep_default_na=False,
     )
 
-    for col in columns or []:
-        if col not in df.columns:
-            df[col] = ""
+    for column in columns or []:
+        if column not in df.columns:
+            df[column] = ""
 
     return df
 
 
-def heading(title, description=""):
+def section(title, subtitle=""):
     st.markdown(
         f'<div class="lf-section">{escape(title)}</div>',
         unsafe_allow_html=True,
     )
-    if description:
+
+    if subtitle:
         st.markdown(
-            f'<div class="lf-subtitle">{escape(description)}</div>',
+            f'<div class="lf-subtitle">{escape(subtitle)}</div>',
             unsafe_allow_html=True,
         )
 
@@ -289,29 +369,40 @@ def show_table(df, limit=150):
         st.info("No records found.")
         return
 
-    df = df.head(limit).fillna("")
+    view = df.head(limit).fillna("")
 
-    th = "".join(
-        f"<th>{escape(str(c))}</th>"
-        for c in df.columns
+    headers = "".join(
+        f"<th>{escape(str(column))}</th>"
+        for column in view.columns
     )
 
     rows = []
-    for record in df.itertuples(index=False, name=None):
-        td = "".join(
+
+    for record in view.itertuples(index=False, name=None):
+        cells = "".join(
             f"<td>{escape(str(value))}</td>"
             for value in record
         )
-        rows.append(f"<tr>{td}</tr>")
 
-    st.markdown(
+        rows.append(f"<tr>{cells}</tr>")
+
+    html = (
         '<div class="lf-table-wrap">'
         '<table class="lf-table">'
-        f"<thead><tr>{th}</tr></thead>"
+        f"<thead><tr>{headers}</tr></thead>"
         f"<tbody>{''.join(rows)}</tbody>"
-        "</table></div>",
+        "</table></div>"
+    )
+
+    st.markdown(
+        html,
         unsafe_allow_html=True,
     )
+
+    if len(df) > limit:
+        st.caption(
+            f"Showing the first {limit} of {len(df):,} records."
+        )
 
 
 def details_table(pairs):
@@ -321,93 +412,184 @@ def details_table(pairs):
     )
 
 
-def timestamp():
-    return datetime.now(
-        timezone.utc
-    ).isoformat(timespec="seconds")
-
-
 # ============================================================
-# CONNECTED REQUEST AND APPROVAL DATA
+# REQUEST DATA CONNECTION
 # ============================================================
 
-def load_requests():
+def load_all_requests():
     """
-    Combine team history and newly submitted form requests.
-    The latest demo copy overrides the original request.
-    This follows your friend's mdm.py storage approach.
+    Read request data from the three sources.
+
+    Priority:
+    1. Original team history
+    2. Request Form
+    3. Approval Management
+
+    Approval Management has the highest priority because
+    its request file contains approval-status updates.
+
+    A source collision is flagged separately.
     """
 
-    team = read_csv(
-        RAW / "mdm_requests.csv",
-        REQUEST_COLS,
-    )
-    demo = read_csv(
-        FORM_DATA / "new_requests.csv",
-        REQUEST_COLS,
-    )
+    frames = []
 
-    team["source"] = "Team History"
-    demo["source"] = "Request Form"
+    for source, path in REQUEST_SOURCES.items():
+        df = read_csv(
+            path,
+            REQUEST_COLUMNS,
+        )
+
+        if df.empty:
+            continue
+
+        df = df.copy()
+        df["source"] = source
+
+        frames.append(df)
+
+    if not frames:
+        return pd.DataFrame(
+            columns=REQUEST_COLUMNS + ["source"]
+        )
 
     combined = pd.concat(
-        [team, demo],
+        frames,
         ignore_index=True,
     )
 
+    combined = combined[
+        combined["request_id"].astype(str).str.strip() != ""
+    ].copy()
+
+    combined = combined.drop_duplicates(
+        subset="request_id",
+        keep="last",
+    )
+
+    return combined.reset_index(drop=True)
+
+
+def load_all_logs():
+    frames = []
+
+    for source, path in LOG_SOURCES.items():
+        df = read_csv(
+            path,
+            LOG_COLUMNS,
+        )
+
+        if df.empty:
+            continue
+
+        df = df.copy()
+        df["source"] = source
+
+        frames.append(df)
+
+    if not frames:
+        return pd.DataFrame(
+            columns=LOG_COLUMNS + ["source"]
+        )
+
+    combined = pd.concat(
+        frames,
+        ignore_index=True,
+    )
+
+    # Event IDs may be generated independently by
+    # different prototypes, so do not deduplicate
+    # using event_id alone.
     return combined.drop_duplicates(
-        "request_id",
+        subset=[
+            "request_id",
+            "event_time",
+            "actor",
+            "actor_role",
+            "action",
+            "comments",
+        ],
         keep="last",
     ).reset_index(drop=True)
 
 
-def load_approval_logs():
-    team = read_csv(
-        RAW / "approval_logs.csv",
-        LOG_COLS,
-    )
-    demo = read_csv(
-        FORM_DATA / "new_approval_logs.csv",
-        LOG_COLS,
-    )
-
-    return pd.concat(
-        [team, demo],
-        ignore_index=True,
-    )
-
-
 def load_payloads():
-    payloads = read_csv(
-        FORM_DATA / "new_payloads.csv",
+    path = FORM_DATA / "new_payloads.csv"
+
+    df = read_csv(
+        path,
         ["request_id", "payload"],
     )
 
-    return payloads.drop_duplicates(
-        "request_id",
+    return df.drop_duplicates(
+        subset="request_id",
         keep="last",
     )
 
 
-def request_payload(request_id, payloads):
-    rows = payloads[
+def get_payload(request_id, payloads):
+    matched = payloads[
         payloads["request_id"] == request_id
     ]
 
-    if rows.empty:
+    if matched.empty:
         return {}
 
     try:
-        result = json.loads(
-            rows.iloc[-1]["payload"]
+        payload = json.loads(
+            matched.iloc[-1]["payload"]
         )
-        return result if isinstance(result, dict) else {}
+
+        if isinstance(payload, dict):
+            return payload
+
     except (ValueError, TypeError):
-        return {}
+        pass
+
+    return {}
+
+
+def get_request_logs(logs, request_id):
+    matched = logs[
+        logs["request_id"] == request_id
+    ].copy()
+
+    if "event_time" in matched.columns:
+        matched = matched.sort_values(
+            "event_time",
+            kind="stable",
+        )
+
+    return matched
+
+
+def get_source_collisions():
+    """
+    Identify IDs stored in both demo systems.
+
+    Matching IDs do not prove that they represent
+    the same request, so display a warning.
+    """
+
+    form = read_csv(
+        FORM_DATA / "new_requests.csv",
+        REQUEST_COLUMNS,
+    )
+
+    approval = read_csv(
+        DEMO / "mdm_requests.csv",
+        REQUEST_COLUMNS,
+    )
+
+    if form.empty or approval.empty:
+        return set()
+
+    return set(form["request_id"]) & set(
+        approval["request_id"]
+    )
 
 
 # ============================================================
-# DATABASE — PRESERVE EXISTING HANDOFF HISTORY
+# SQLITE — MOCK HANDOFF HISTORY
 # ============================================================
 
 def db_connection():
@@ -417,7 +599,7 @@ def db_connection():
     )
 
     conn = sqlite3.connect(
-        DB,
+        DATABASE,
         timeout=20,
     )
 
@@ -460,7 +642,11 @@ def db_connection():
 def load_handoffs():
     with db_connection() as conn:
         return pd.read_sql_query(
-            "SELECT * FROM handoffs ORDER BY created_at DESC",
+            """
+            SELECT *
+            FROM handoffs
+            ORDER BY created_at DESC
+            """,
             conn,
         )
 
@@ -468,101 +654,180 @@ def load_handoffs():
 def load_resolutions():
     with db_connection() as conn:
         return pd.read_sql_query(
-            "SELECT * FROM resolutions ORDER BY created_at DESC",
+            """
+            SELECT *
+            FROM resolutions
+            ORDER BY created_at DESC
+            """,
             conn,
         )
 
 
 # ============================================================
-# SYNC RESULT BACK TO THE REQUEST FORM
+# UPDATE THE CORRECT APPROVAL DATA
 # ============================================================
 
-def sync_request_status(request_id, status, current_step, note):
+def update_demo_request(
+    path,
+    request_id,
+    status,
+    step,
+    message,
+):
     """
-    Update the demo request only.
+    Update a request inside a demo CSV.
 
-    Original data/raw files are never modified.
+    Do not create new records in unrelated stores.
     """
 
-    path = FORM_DATA / "new_requests.csv"
-    demo = read_csv(path, REQUEST_COLS)
+    if not path.exists():
+        return False
 
-    mask = demo["request_id"] == request_id
+    df = read_csv(
+        path,
+        REQUEST_COLUMNS,
+    )
+
+    mask = df["request_id"] == request_id
 
     if not mask.any():
         return False
 
-    demo.loc[mask, "status"] = status
-    demo.loc[mask, "current_step"] = current_step
+    df.loc[mask, "status"] = status
+    df.loc[mask, "current_step"] = step
 
-    old_note = clean(
-        demo.loc[mask, "notes"].iloc[-1]
+    old_notes = clean(
+        df.loc[mask, "notes"].iloc[-1]
     )
 
-    demo.loc[mask, "notes"] = (
-        f"{old_note} | {note}".strip(" |")
+    if message not in old_notes:
+        new_notes = (
+            f"{old_notes} | {message}"
+            if old_notes else message
+        )
+
+        df.loc[mask, "notes"] = new_notes
+
+    df.to_csv(
+        path,
+        index=False,
     )
 
-    demo.to_csv(path, index=False)
     return True
 
 
-def log_final_action(request_id, reviewer, action, comment):
+def add_demo_log(
+    path,
+    request_id,
+    reviewer,
+    action,
+    comments,
+):
     """
-    Append a final action only for requests that exist
-    in the demo Request Form data.
+    Append a final-review event to a demo approval log.
+
+    The existing events are never changed.
     """
 
-    demo = read_csv(
-        FORM_DATA / "new_requests.csv",
-        REQUEST_COLS,
+    df = read_csv(
+        path,
+        LOG_COLUMNS,
     )
 
-    if request_id not in set(demo["request_id"]):
-        return
-
-    path = FORM_DATA / "new_approval_logs.csv"
-    logs = read_csv(path, LOG_COLS)
-
-    duplicate_event = logs[
-        (logs["request_id"] == request_id)
-        & (logs["action"] == action)
+    already_exists = df[
+        (df["request_id"] == request_id)
+        & (df["action"] == action)
     ]
 
-    if not duplicate_event.empty:
+    if not already_exists.empty:
         return
 
     event = {
         "event_id": (
-            "MDM-"
-            + request_id
-            + "-"
-            + datetime.now(timezone.utc).strftime(
-                "%Y%m%d%H%M%S%f"
-            )
+            f"MDM-{request_id}-"
+            f"{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}"
         ),
         "request_id": request_id,
-        "event_time": timestamp(),
+        "event_time": now(),
         "actor": reviewer,
         "actor_role": "MDM Analyst",
         "action": action,
-        "comments": comment,
+        "comments": comments,
     }
 
-    logs = pd.concat(
-        [logs, pd.DataFrame([event])],
+    updated = pd.concat(
+        [df, pd.DataFrame([event])],
         ignore_index=True,
     )
 
-    logs.to_csv(path, index=False)
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    updated.to_csv(
+        path,
+        index=False,
+    )
+
+
+def sync_final_decision(
+    record,
+    status,
+    step,
+    reviewer,
+    action,
+    message,
+):
+    """
+    Update the demo store that owns the request.
+
+    If an ID appears in both demo stores, do not
+    automatically write to both: the ID may have been
+    generated independently by two separate prototypes.
+    """
+
+    request_id = clean(record["request_id"])
+    source = clean(record["source"])
+
+    if source == "Request Form":
+        request_path = FORM_DATA / "new_requests.csv"
+        log_path = FORM_DATA / "new_approval_logs.csv"
+
+    elif source == "Approval Management":
+        request_path = DEMO / "mdm_requests.csv"
+        log_path = DEMO / "approval_logs.csv"
+
+    else:
+        # Original team history remains read-only.
+        return True
+
+    changed = update_demo_request(
+        request_path,
+        request_id,
+        status,
+        step,
+        message,
+    )
+
+    if changed:
+        add_demo_log(
+            log_path,
+            request_id,
+            reviewer,
+            action,
+            message,
+        )
+
+    return changed
 
 
 # ============================================================
 # VALIDATION
 # ============================================================
 
-def validate_request(record, payload):
-    fields = {
+def validate_request(record):
+    required = {
         "Request ID": "request_id",
         "Record Type": "request_type",
         "Record Name": "record_name",
@@ -572,154 +837,230 @@ def validate_request(record, payload):
 
     results = []
 
-    for label, column in fields.items():
-        value = clean(record.get(column, ""))
+    for label, column in required.items():
+        value = clean(
+            record.get(column, "")
+        )
 
         results.append({
-            "Check": label,
-            "Result": "Complete" if value else "Missing",
+            "Validation": label,
+            "Result": (
+                "Complete" if value else "Missing"
+            ),
         })
 
-    supported = (
-        clean(record.get("request_type"))
-        in MASTER_FILES
+    record_type = clean(
+        record.get("request_type", "")
     )
 
     results.append({
-        "Check": "Supported Record Type",
+        "Validation": "Supported Record Type",
         "Result": (
-            "Complete" if supported else "Unsupported"
+            "Complete"
+            if record_type in MASTER_CONFIG
+            else "Unsupported"
         ),
     })
 
-    checks = pd.DataFrame(results)
+    result = pd.DataFrame(results)
 
-    return (
-        checks["Result"].eq("Complete").all(),
-        checks,
+    valid = result["Result"].eq(
+        "Complete"
+    ).all()
+
+    return valid, result
+
+
+# ============================================================
+# AUTOMATIC DUPLICATE CHECK
+# ============================================================
+
+def find_duplicates(record, payload, handoffs):
+    """
+    Screen existing masters and completed mock handoffs.
+
+    Also checks registration numbers when available.
+
+    This is not a final legal-identity determination.
+    """
+
+    kind = clean(
+        record.get("request_type", "")
     )
 
-
-# ============================================================
-# AUTOMATIC DUPLICATE DETECTION
-# ============================================================
-
-def find_duplicates(record, handoffs):
-    kind = clean(record.get("request_type"))
-
-    if kind not in MASTER_FILES:
+    if kind not in MASTER_CONFIG:
         return pd.DataFrame()
 
-    filename, id_col, name_col = MASTER_FILES[kind]
+    config = MASTER_CONFIG[kind]
 
-    original = read_csv(RAW / filename)
-    new_master = read_csv(
-        FORM_DATA / f"new_{filename}"
+    master_file = config["file"]
+    id_col = config["id"]
+    name_col = config["name"]
+
+    original = read_csv(
+        RAW / master_file
+    )
+
+    form_master = read_csv(
+        FORM_DATA / f"new_{master_file}"
     )
 
     masters = pd.concat(
-        [original, new_master],
+        [original, form_master],
         ignore_index=True,
     )
 
-    target = normalize(
-        record.get("record_name")
+    target_name = normalize(
+        record.get("record_name", "")
     )
 
-    matches = []
+    target_registration = clean(
+        payload.get(
+            "registration_no",
+            payload.get("registration_number", ""),
+        )
+    ).upper()
 
-    if name_col in masters.columns and target:
+    candidates = []
+
+    if name_col in masters.columns:
         for _, existing in masters.iterrows():
             existing_name = clean(
-                existing.get(name_col)
+                existing.get(name_col, "")
             )
 
             if not existing_name:
                 continue
 
-            score = SequenceMatcher(
+            name_score = SequenceMatcher(
                 None,
-                target,
+                target_name,
                 normalize(existing_name),
-            ).ratio()
+            ).ratio() if target_name else 0
 
-            if score >= 0.80:
-                matches.append({
-                    "Source": "Master Data",
+            existing_registration = clean(
+                existing.get(
+                    "registration_no",
+                    existing.get("registration_number", ""),
+                )
+            ).upper()
+
+            same_registration = (
+                bool(target_registration)
+                and bool(existing_registration)
+                and target_registration == existing_registration
+            )
+
+            if same_registration or name_score >= 0.80:
+                if same_registration:
+                    reason = "Same registration number"
+                    score_text = "Exact identifier"
+                elif name_score == 1:
+                    reason = "Exact name"
+                    score_text = "100%"
+                else:
+                    reason = "Similar name"
+                    score_text = f"{name_score * 100:.0f}%"
+
+                candidates.append({
+                    "Source": "Master Data Directory",
                     "Existing Code": clean(
-                        existing.get(id_col)
+                        existing.get(id_col, "")
                     ),
                     "Existing Name": existing_name,
-                    "Match": (
-                        "Exact name" if score == 1
-                        else "Similar name"
-                    ),
-                    "Similarity": f"{score * 100:.0f}%",
+                    "Reason": reason,
+                    "Similarity": score_text,
                 })
 
-    if not handoffs.empty and target:
+    if not handoffs.empty and target_name:
         previous = handoffs[
             handoffs["master_type"] == kind
         ]
 
         for _, existing in previous.iterrows():
-            score = SequenceMatcher(
+            similarity = SequenceMatcher(
                 None,
-                target,
-                normalize(existing["record_name"]),
+                target_name,
+                normalize(
+                    existing["record_name"]
+                ),
             ).ratio()
 
-            if score >= 0.80:
-                matches.append({
-                    "Source": "Mock Handoff Log",
+            if similarity >= 0.80:
+                candidates.append({
+                    "Source": "Previous Mock Handoff",
                     "Existing Code": existing["mock_sap_code"],
                     "Existing Name": existing["record_name"],
-                    "Match": "Previously processed",
-                    "Similarity": f"{score * 100:.0f}%",
+                    "Reason": "Previously processed",
+                    "Similarity": f"{similarity * 100:.0f}%",
                 })
 
     flagged = clean(
-        record.get("candidate_existing_id")
+        record.get("candidate_existing_id", "")
     )
 
     if flagged:
-        matches.append({
-            "Source": "Request Form",
+        candidates.append({
+            "Source": "Request Submission",
             "Existing Code": flagged,
             "Existing Name": "Flagged existing record",
-            "Match": "Review required",
+            "Reason": "Previously flagged",
             "Similarity": "—",
         })
 
-    if not matches:
-        return pd.DataFrame()
+    if not candidates:
+        return pd.DataFrame(
+            columns=[
+                "Source",
+                "Existing Code",
+                "Existing Name",
+                "Reason",
+                "Similarity",
+            ]
+        )
 
     return pd.DataFrame(
-        matches
+        candidates
     ).drop_duplicates()
 
 
 # ============================================================
-# FINAL HANDOFF AND REVIEW DECISIONS
+# SAVE THE FINAL DECISION
 # ============================================================
 
-def save_handoff(record, reviewer, note, duplicate_override):
-    request_id = clean(record["request_id"])
-    kind = clean(record["request_type"])
-
-    mock_code = (
-        f"MOCK-{PREFIX[kind]}-{request_id}"
+def save_handoff(
+    record,
+    reviewer,
+    note,
+    duplicate_override,
+):
+    request_id = clean(
+        record["request_id"]
     )
 
-    payload = {
+    record_type = clean(
+        record["request_type"]
+    )
+
+    prefix = MASTER_CONFIG[
+        record_type
+    ]["prefix"]
+
+    mock_code = (
+        f"MOCK-{prefix}-{request_id}"
+    )
+
+    request_payload = {
         "requestId": request_id,
-        "recordType": kind,
+        "recordType": record_type,
         "recordName": clean(record["record_name"]),
+        "country": clean(record.get("country", "")),
+        "entity": clean(record.get("entity", "")),
         "reviewedBy": reviewer,
         "duplicateOverride": duplicate_override,
     }
 
-    response = {
+    simulated_response = {
         "simulation": True,
         "status": "SIMULATED_SUCCESS",
         "mockSapCode": mock_code,
@@ -745,40 +1086,46 @@ def save_handoff(record, reviewer, note, duplicate_override):
                 """,
                 (
                     request_id,
-                    kind,
+                    record_type,
                     clean(record["record_name"]),
                     mock_code,
                     "Simulated handoff complete",
-                    timestamp(),
+                    now(),
                     reviewer,
                     note,
-                    json.dumps(payload),
-                    json.dumps(response),
+                    json.dumps(request_payload),
+                    json.dumps(simulated_response),
                 ),
             )
+
     except sqlite3.IntegrityError:
         return False
 
-    changed = sync_request_status(
-        request_id,
-        "Completed",
-        "Finalized",
-        f"Mock SAP reference: {mock_code}",
+    sync_final_decision(
+        record=record,
+        status=COMPLETED_STATUS,
+        step="Finalized",
+        reviewer=reviewer,
+        action="SAP handoff complete",
+        message=(
+            f"Simulated SAP B1 handoff completed. "
+            f"Mock reference: {mock_code}. {note}"
+        ),
     )
-
-    if changed:
-        log_final_action(
-            request_id,
-            reviewer,
-            "SAP handoff complete",
-            f"Mock SAP reference: {mock_code}",
-        )
 
     return True
 
 
-def save_resolution(record, decision, existing_code, reviewer, note):
-    request_id = clean(record["request_id"])
+def save_resolution(
+    record,
+    decision,
+    existing_code,
+    reviewer,
+    note,
+):
+    request_id = clean(
+        record["request_id"]
+    )
 
     try:
         with db_connection() as conn:
@@ -804,66 +1151,75 @@ def save_resolution(record, decision, existing_code, reviewer, note):
                     existing_code,
                     reviewer,
                     note,
-                    timestamp(),
+                    now(),
                 ),
             )
+
     except sqlite3.IntegrityError:
         return False
 
     if decision == "Use Existing Record":
-        status = "Completed"
+        status = COMPLETED_STATUS
         step = "Finalized"
         action = "Resolved using existing record"
-    else:
-        status = "Returned for correction"
-        step = "Requestor"
-        action = "Returned for correction"
 
-    changed = sync_request_status(
-        request_id,
-        status,
-        step,
-        note,
-    )
-
-    if changed:
-        log_final_action(
-            request_id,
-            reviewer,
-            action,
-            note,
+        message = (
+            f"Existing record {existing_code} selected. "
+            f"{note}"
         )
+
+    else:
+        status = RETURNED_STATUS
+        step = "Correction requested"
+        action = "Changes requested"
+        message = note
+
+    sync_final_decision(
+        record=record,
+        status=status,
+        step=step,
+        reviewer=reviewer,
+        action=action,
+        message=message,
+    )
 
     return True
 
 
 # ============================================================
-# LOAD ALL CONNECTED DATA
+# LOAD CONNECTED INFORMATION
 # ============================================================
 
-requests = load_requests()
-logs = load_approval_logs()
+requests = load_all_requests()
+approval_logs = load_all_logs()
 payloads = load_payloads()
 
 handoffs = load_handoffs()
 resolutions = load_resolutions()
 
-approved = requests[
-    requests["status"].map(
-        lambda x: clean(x).casefold()
-    ) == "approved - sap pending"
-].copy()
+collisions = get_source_collisions()
 
-processed = set(
+if requests.empty:
+    approved = requests.copy()
+else:
+    approved = requests[
+        requests["status"].map(
+            lambda value: clean(value).casefold()
+        ) == APPROVED_STATUS.casefold()
+    ].copy()
+
+processed_ids = set(
     handoffs["request_id"].astype(str)
 )
 
-processed.update(
+processed_ids.update(
     resolutions["request_id"].astype(str)
 )
 
 queue = approved[
-    ~approved["request_id"].isin(processed)
+    ~approved["request_id"].astype(str).isin(
+        processed_ids
+    )
 ].copy()
 
 
@@ -874,32 +1230,53 @@ queue = approved[
 st.title("Master Data Management")
 
 st.caption(
-    "Final validation of approved master data requests "
+    "Final master data validation after approval, "
     "before simulated SAP Business One handoff."
 )
 
-if not FORM.exists():
+st.caption(
+    "Integration Status: Connected Demo Data | "
+    "SAP B1 Simulation"
+)
+
+if collisions:
     st.warning(
-        "The request form folder was not found at "
-        f"{FORM}. Team history will still be available."
+        "Some request IDs appear in both the Request Form "
+        "and Approval Management demo files. "
+        "Approval Management takes priority for display. "
+        "Verify that these IDs refer to the same requests "
+        "before processing them."
     )
 
-if FORM.exists() and not (FORM_DATA / "new_requests.csv").exists():
+if not DEMO.exists():
     st.info(
-        "The Request Form is connected, but no new requests "
-        "have been saved yet."
+        "Approval Management demo data has not been found. "
+        "The page will still display any eligible requests "
+        "from the available sources."
     )
 
-with st.expander("Connected Data Sources"):
-    st.write("Request Form data:")
-    st.code(str(FORM_DATA / "new_requests.csv"))
+with st.expander(
+    "Connected Data Sources",
+    expanded=False,
+):
+    sources = []
 
-    st.write("Approval history:")
-    st.code(str(FORM_DATA / "new_approval_logs.csv"))
+    for name, path in REQUEST_SOURCES.items():
+        sources.append({
+            "Source": name,
+            "Requests File": str(path),
+            "Available": (
+                "Yes" if path.exists() else "No"
+            ),
+        })
+
+    show_table(
+        pd.DataFrame(sources)
+    )
 
     st.caption(
-        "Requests enter this queue after their status "
-        "becomes Approved - SAP pending."
+        "The page loads the latest CSV data whenever "
+        "it reruns. Refresh after approving a request."
     )
 
 
@@ -909,10 +1286,25 @@ with st.expander("Connected Data Sources"):
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.metric("Approved Requests", len(approved))
-c2.metric("Pending Final Review", len(queue))
-c3.metric("Completed Mock Handoffs", len(handoffs))
-c4.metric("Review Decisions", len(resolutions))
+c1.metric(
+    "Approved Requests",
+    len(approved),
+)
+
+c2.metric(
+    "Pending Final Review",
+    len(queue),
+)
+
+c3.metric(
+    "Mock Handoffs",
+    len(handoffs),
+)
+
+c4.metric(
+    "Review Decisions",
+    len(resolutions),
+)
 
 st.write("")
 
@@ -921,7 +1313,7 @@ st.write("")
 # MAIN TABS
 # ============================================================
 
-tab_queue, tab_directory, tab_history = st.tabs([
+tab_queue, tab_directory, tab_log = st.tabs([
     "SAP Handoff Queue",
     "Master Data Directory",
     "Handoff Log",
@@ -929,20 +1321,22 @@ tab_queue, tab_directory, tab_history = st.tabs([
 
 
 # ============================================================
-# TAB 1 — APPROVED REQUESTS
+# TAB 1 — SAP HANDOFF QUEUE
 # ============================================================
 
 with tab_queue:
-    heading(
+
+    section(
         "Ready for SAP Review",
-        "Approved requests that require final MDM validation.",
+        "Approved requests requiring final master data validation.",
     )
 
     if queue.empty:
         st.info(
             "There are no requests waiting for final review. "
-            "Submit and approve a new request through the "
-            "Request Form prototype."
+            "Once a request is fully approved, it should "
+            "appear here with the status "
+            "'Approved - SAP pending'."
         )
 
     else:
@@ -951,34 +1345,47 @@ with tab_queue:
         with filter1:
             selected_type = st.selectbox(
                 "Record Type",
-                ["All"] + sorted(
-                    queue["request_type"].unique().tolist()
+                ["All Types"]
+                + sorted(
+                    queue["request_type"]
+                    .dropna()
+                    .unique()
+                    .tolist()
                 ),
             )
 
         with filter2:
             selected_source = st.selectbox(
                 "Request Source",
-                ["All", "Team History", "Request Form"],
+                [
+                    "All Sources",
+                    "Team History",
+                    "Request Form",
+                    "Approval Management",
+                ],
             )
 
         filtered = queue.copy()
 
-        if selected_type != "All":
+        if selected_type != "All Types":
             filtered = filtered[
-                filtered["request_type"] == selected_type
+                filtered["request_type"]
+                == selected_type
             ]
 
-        if selected_source != "All":
+        if selected_source != "All Sources":
             filtered = filtered[
-                filtered["source"] == selected_source
+                filtered["source"]
+                == selected_source
             ]
 
         if filtered.empty:
-            st.info("No requests match these filters.")
+            st.info(
+                "No requests match these filters."
+            )
 
         else:
-            display_cols = [
+            display_columns = [
                 "request_id",
                 "request_type",
                 "record_name",
@@ -988,7 +1395,9 @@ with tab_queue:
             ]
 
             show_table(
-                filtered[display_cols].rename(
+                filtered[
+                    display_columns
+                ].rename(
                     columns={
                         "request_id": "Request ID",
                         "request_type": "Record Type",
@@ -1013,64 +1422,107 @@ with tab_queue:
             )
 
             record = filtered[
-                filtered["request_id"] == selected_id
+                filtered["request_id"]
+                == selected_id
             ].iloc[0]
 
-            payload = request_payload(
+            payload = get_payload(
                 selected_id,
                 payloads,
             )
 
             with st.container(border=True):
-                heading("Request Details")
+
+                section(
+                    "Request Details",
+                    "Review the information submitted for this record.",
+                )
 
                 show_table(
                     details_table([
                         ("Request ID", selected_id),
-                        ("Record Type", record["request_type"]),
-                        ("Record Name", record["record_name"]),
-                        ("Country", record["country"]),
-                        ("Business Entity", record["entity"]),
-                        ("Submitted By", record["requestor"]),
-                        ("Status", record["status"]),
-                        ("Source", record["source"]),
+                        (
+                            "Record Type",
+                            record["request_type"],
+                        ),
+                        (
+                            "Record Name",
+                            record["record_name"],
+                        ),
+                        (
+                            "Country",
+                            record["country"],
+                        ),
+                        (
+                            "Business Entity",
+                            record["entity"],
+                        ),
+                        (
+                            "Submitted By",
+                            record["requestor"],
+                        ),
+                        (
+                            "Approval Status",
+                            record["status"],
+                        ),
+                        (
+                            "Data Source",
+                            record["source"],
+                        ),
                     ])
                 )
 
                 if payload:
-                    with st.expander("Additional Request Information"):
+                    with st.expander(
+                        "Additional Submitted Information"
+                    ):
+                        extra = []
+
+                        for key, value in payload.items():
+                            extra.append({
+                                "Field": key.replace(
+                                    "_", " "
+                                ).title(),
+                                "Value": str(value),
+                            })
+
                         show_table(
-                            pd.DataFrame([
-                                {
-                                    "Field": str(k).replace(
-                                        "_", " "
-                                    ).title(),
-                                    "Value": str(v),
-                                }
-                                for k, v in payload.items()
-                            ])
+                            pd.DataFrame(extra)
                         )
 
-                heading("Approval History")
+                # --------------------------------------------
+                # APPROVAL HISTORY
+                # --------------------------------------------
 
-                request_logs = logs[
-                    logs["request_id"] == selected_id
-                ].copy()
+                section(
+                    "Approval History",
+                    "Recorded actions from the connected approval systems.",
+                )
 
-                if request_logs.empty:
+                events = get_request_logs(
+                    approval_logs,
+                    selected_id,
+                )
+
+                if events.empty:
                     st.warning(
-                        "No approval events found for this request."
+                        "No approval events were found "
+                        "for this request."
                     )
+
                 else:
+                    event_columns = [
+                        "event_time",
+                        "actor",
+                        "actor_role",
+                        "action",
+                        "comments",
+                        "source",
+                    ]
+
                     show_table(
-                        request_logs[
-                            [
-                                "event_time",
-                                "actor",
-                                "actor_role",
-                                "action",
-                                "comments",
-                            ]
+                        events[
+                            event_columns
                         ].rename(
                             columns={
                                 "event_time": "Date & Time",
@@ -1078,21 +1530,27 @@ with tab_queue:
                                 "actor_role": "Role",
                                 "action": "Action",
                                 "comments": "Comments",
+                                "source": "Source",
                             }
                         )
                     )
 
-                heading(
+                # --------------------------------------------
+                # AUTOMATIC VALIDATION
+                # --------------------------------------------
+
+                section(
                     "Automatic Validation",
-                    "Check the required master data fields.",
+                    "Check whether the required information is present.",
                 )
 
-                valid, validation_results = validate_request(
-                    record,
-                    payload,
+                valid, validation_results = (
+                    validate_request(record)
                 )
 
-                show_table(validation_results)
+                show_table(
+                    validation_results
+                )
 
                 if valid:
                     st.success(
@@ -1100,36 +1558,48 @@ with tab_queue:
                     )
                 else:
                     st.error(
-                        "Some required fields are missing. "
-                        "The mock handoff cannot proceed."
+                        "Some required information is missing. "
+                        "The request cannot proceed to "
+                        "the mock SAP handoff."
                     )
 
-                heading(
+                # --------------------------------------------
+                # DUPLICATE SCREENING
+                # --------------------------------------------
+
+                section(
                     "Automatic Duplicate Check",
-                    "Search existing master data and previous mock handoffs.",
+                    "Screen this request against existing master data.",
                 )
 
                 duplicates = find_duplicates(
                     record,
+                    payload,
                     handoffs,
                 )
 
                 if duplicates.empty:
                     st.success(
-                        "No potential duplicates detected "
-                        "in the available records."
+                        "No potential duplicates found "
+                        "in the available master records."
                     )
+
                 else:
                     st.warning(
-                        f"{len(duplicates)} possible match(es) found. "
-                        "Please review before continuing."
+                        f"{len(duplicates)} possible "
+                        "match(es) detected. "
+                        "Review the records before continuing."
                     )
 
                     show_table(duplicates)
 
-                heading(
+                # --------------------------------------------
+                # FINAL REVIEW
+                # --------------------------------------------
+
+                section(
                     "Final Review",
-                    "Confirm the master data before simulated SAP handoff.",
+                    "Complete the MDM quality check and record your decision.",
                 )
 
                 if duplicates.empty:
@@ -1137,6 +1607,7 @@ with tab_queue:
                         "Complete Mock Handoff",
                         "Send Back for Review",
                     ]
+
                 else:
                     decisions = [
                         "Confirm Different Record and Complete Handoff",
@@ -1144,9 +1615,21 @@ with tab_queue:
                         "Send Back for Review",
                     ]
 
+                # Prevent ambiguous IDs from being processed
+                # without first reconciling the sources.
+                conflicting_id = selected_id in collisions
+
+                if conflicting_id:
+                    st.error(
+                        "This request ID exists in both demo systems. "
+                        "Reconcile the two records before performing "
+                        "the final handoff."
+                    )
+
                 with st.form(
-                    f"review_form_{selected_id}"
+                    f"mdm_final_review_{selected_id}"
                 ):
+
                     decision = st.radio(
                         "Review Decision",
                         decisions,
@@ -1170,22 +1653,24 @@ with tab_queue:
                     notes = st.text_area(
                         "Review Notes",
                         placeholder=(
-                            "Explain the validation result "
-                            "and your review decision."
+                            "Explain the validation results "
+                            "and the reason for your decision."
                         ),
                     )
 
                     confirmed = st.checkbox(
-                        "I have checked the request details, "
+                        "I have reviewed the request details, "
                         "approval history and duplicate results."
                     )
 
                     submitted = st.form_submit_button(
                         "Save Review Decision",
                         type="primary",
+                        disabled=conflicting_id,
                     )
 
                 if submitted:
+
                     if not reviewer.strip():
                         st.error(
                             "Please enter the reviewer name."
@@ -1198,10 +1683,12 @@ with tab_queue:
 
                     elif not confirmed:
                         st.error(
-                            "Please confirm that the review is complete."
+                            "Please confirm that you completed "
+                            "the review."
                         )
 
                     elif decision == "Send Back for Review":
+
                         success = save_resolution(
                             record,
                             "Send Back for Review",
@@ -1218,6 +1705,7 @@ with tab_queue:
                             )
 
                     elif decision == "Use Existing Record":
+
                         success = save_resolution(
                             record,
                             "Use Existing Record",
@@ -1235,11 +1723,13 @@ with tab_queue:
 
                     elif not valid:
                         st.error(
-                            "The request has missing information. "
-                            "Please return it for correction."
+                            "The request is missing required "
+                            "information. Please send it "
+                            "back for correction."
                         )
 
                     else:
+
                         success = save_handoff(
                             record,
                             reviewer.strip(),
@@ -1260,45 +1750,56 @@ with tab_queue:
 # ============================================================
 
 with tab_directory:
-    heading(
+
+    section(
         "Master Data Directory",
-        "Browse the existing master records used for duplicate screening.",
+        "Search existing customer, item, vendor and cost-centre data.",
     )
 
     master_type = st.selectbox(
         "Record Type",
-        list(MASTER_FILES.keys()),
-        key="master_type_directory",
+        list(MASTER_CONFIG),
+        key="master_directory_type",
     )
 
-    filename, _, _ = MASTER_FILES[master_type]
-
-    original = read_csv(
-        RAW / filename
+    master_file = (
+        MASTER_CONFIG[master_type]["file"]
     )
 
-    demo = read_csv(
-        FORM_DATA / f"new_{filename}"
+    original_master = read_csv(
+        RAW / master_file
     )
 
-    if not original.empty:
-        original["Source"] = "Team Master Data"
+    new_master = read_csv(
+        FORM_DATA / f"new_{master_file}"
+    )
 
-    if not demo.empty:
-        demo["Source"] = "Request Form Demo"
+    if not original_master.empty:
+        original_master["Source"] = (
+            "Team Master Data"
+        )
+
+    if not new_master.empty:
+        new_master["Source"] = (
+            "Request Form Demo"
+        )
 
     directory = pd.concat(
-        [original, demo],
+        [
+            original_master,
+            new_master,
+        ],
         ignore_index=True,
     )
 
     search = st.text_input(
-        "Search Master Data",
-        placeholder="Search name, code or other fields",
+        "Search Master Records",
+        placeholder="Search by name, code or other information",
     )
 
     if search.strip() and not directory.empty:
-        mask = directory.astype(str).apply(
+
+        matches = directory.astype(str).apply(
             lambda col: col.str.contains(
                 search.strip(),
                 case=False,
@@ -1306,13 +1807,14 @@ with tab_directory:
             )
         ).any(axis=1)
 
-        directory = directory[mask]
+        directory = directory[matches]
 
     show_table(directory)
 
     st.caption(
-        "Original master data is read-only. "
-        "Simulated handoffs are stored separately."
+        "This directory is read-only. "
+        "The SAP handoff page does not change "
+        "the original team master CSV files."
     )
 
 
@@ -1320,20 +1822,25 @@ with tab_directory:
 # TAB 3 — HANDOFF LOG
 # ============================================================
 
-with tab_history:
-    heading(
+with tab_log:
+
+    section(
         "Handoff Log",
-        "Review completed mock handoffs and final decisions.",
+        "Review completed simulated SAP handoffs and MDM decisions.",
     )
 
-    history_tab, review_tab = st.tabs([
+    handoff_tab, decision_tab = st.tabs([
         "Completed Handoffs",
         "Review Decisions",
     ])
 
-    with history_tab:
+    with handoff_tab:
+
         if handoffs.empty:
-            st.info("No mock handoffs have been completed.")
+            st.info(
+                "No simulated SAP handoffs "
+                "have been recorded yet."
+            )
 
         else:
             show_table(
@@ -1343,6 +1850,7 @@ with tab_history:
                         "master_type",
                         "record_name",
                         "mock_sap_code",
+                        "state",
                         "created_at",
                         "reviewed_by",
                     ]
@@ -1352,41 +1860,66 @@ with tab_history:
                         "master_type": "Record Type",
                         "record_name": "Record Name",
                         "mock_sap_code": "Mock SAP Reference",
+                        "state": "Status",
                         "created_at": "Completed At (UTC)",
                         "reviewed_by": "Reviewed By",
                     }
                 )
             )
 
-            selected_log = st.selectbox(
-                "View Handoff Details",
-                handoffs["request_id"].tolist(),
+            selected_handoff = st.selectbox(
+                "View Handoff",
+                handoffs[
+                    "request_id"
+                ].tolist(),
             )
 
             selected = handoffs[
-                handoffs["request_id"] == selected_log
+                handoffs["request_id"]
+                == selected_handoff
             ].iloc[0]
 
             with st.container(border=True):
-                heading("SAP Handoff Summary")
+
+                section(
+                    "SAP Handoff Summary"
+                )
 
                 st.success(
                     "Mock handoff completed successfully. "
-                    "No real SAP record was created."
+                    "No live SAP Business One record was created."
                 )
 
                 show_table(
                     details_table([
-                        ("Request ID", selected["request_id"]),
-                        ("Record Name", selected["record_name"]),
-                        ("Record Type", selected["master_type"]),
+                        (
+                            "Request ID",
+                            selected["request_id"],
+                        ),
+                        (
+                            "Record Name",
+                            selected["record_name"],
+                        ),
+                        (
+                            "Record Type",
+                            selected["master_type"],
+                        ),
                         (
                             "Mock SAP Reference",
                             selected["mock_sap_code"],
                         ),
-                        ("Status", selected["state"]),
-                        ("Reviewed By", selected["reviewed_by"]),
-                        ("Review Notes", selected["review_note"]),
+                        (
+                            "Status",
+                            selected["state"],
+                        ),
+                        (
+                            "Reviewed By",
+                            selected["reviewed_by"],
+                        ),
+                        (
+                            "Review Notes",
+                            selected["review_note"],
+                        ),
                         (
                             "Completed At (UTC)",
                             selected["created_at"],
@@ -1403,9 +1936,12 @@ with tab_history:
                 mime="text/csv",
             )
 
-    with review_tab:
+    with decision_tab:
+
         if resolutions.empty:
-            st.info("No final review decisions recorded.")
+            st.info(
+                "No review decisions recorded yet."
+            )
 
         else:
             show_table(
@@ -1432,6 +1968,5 @@ st.write("")
 st.divider()
 
 st.caption(
-    "LivesFlow | Connected Request and Approval Prototype | "
-    "Simulated SAP Business One Handoff"
+    "LivesFlow Competition Prototype | "
 )

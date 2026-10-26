@@ -4,7 +4,7 @@ import streamlit as st
 
 
 # ============================================================
-# LIVESFLOW — MAIN DASHBOARD
+# LIVESFLOW — MAIN APPLICATION
 # ============================================================
 
 st.set_page_config(
@@ -17,16 +17,16 @@ ROOT = Path(__file__).resolve().parent
 
 
 # ============================================================
-# GLOBAL STYLING
+# GLOBAL CSS
 # ============================================================
 
 st.markdown(
     """
     <style>
 
-    /* --------------------------------------------------------
-       MAIN APPLICATION
-    -------------------------------------------------------- */
+    /* ======================================================
+       MAIN DASHBOARD
+    ====================================================== */
 
     [data-testid="stAppViewContainer"],
     [data-testid="stMain"] {
@@ -50,9 +50,9 @@ st.markdown(
     }
 
 
-    /* --------------------------------------------------------
+    /* ======================================================
        NAVY SIDEBAR
-    -------------------------------------------------------- */
+    ====================================================== */
 
     [data-testid="stSidebar"],
     [data-testid="stSidebarContent"] {
@@ -64,25 +64,21 @@ st.markdown(
     }
 
 
-    /* --------------------------------------------------------
-       LIVESFLOW LOGO ABOVE NAVIGATION
-       
-       The navigation is rendered by Streamlit before normal
-       sidebar elements. We display the branding in the
-       navigation's top area instead.
-    -------------------------------------------------------- */
+    /* ======================================================
+       LIVESFLOW LOGO AT THE TOP OF NAVIGATION
+    ====================================================== */
 
     [data-testid="stSidebarNav"] {
         position: relative !important;
         padding-top: 118px !important;
     }
 
-    /* White Lives + blue Flow through two separate layers */
+    /* "Lives" — white */
 
     [data-testid="stSidebarNav"]::before {
         content: "Lives";
         position: absolute;
-        top: 27px;
+        top: 26px;
         left: 28px;
 
         font-family:
@@ -91,18 +87,21 @@ st.markdown(
             "Segoe UI",
             sans-serif;
 
-        font-size: 32px;
+        font-size: 31px;
         font-weight: 800;
         letter-spacing: -1.3px;
         line-height: 1.1;
         color: #f6f8fd !important;
+        pointer-events: none;
     }
+
+    /* "Flow" — pastel blue */
 
     [data-testid="stSidebarNav"]::after {
         content: "Flow";
         position: absolute;
-        top: 27px;
-        left: 105px;
+        top: 26px;
+        left: 104px;
 
         font-family:
             -apple-system,
@@ -110,59 +109,51 @@ st.markdown(
             "Segoe UI",
             sans-serif;
 
-        font-size: 32px;
+        font-size: 31px;
         font-weight: 800;
         letter-spacing: -1.3px;
         line-height: 1.1;
         color: #77a9ff !important;
+        pointer-events: none;
     }
 
-    /* Subtitle placed underneath the logo */
+    /* Subtitle */
 
     [data-testid="stSidebarNav"] > ul::before {
         content: "MASTER DATA & ANALYTICS";
         display: block;
 
-        color: #a9b8ce !important;
         font-size: 10px;
         font-weight: 650;
-        letter-spacing: 1.7px;
+        letter-spacing: 1.4px;
+        color: #a9b8ce !important;
 
-        margin-top: -44px;
-        margin-left: 28px;
-        margin-bottom: 45px;
+        padding: 0 14px;
+        margin-top: -39px;
+        margin-bottom: 48px;
     }
 
 
-    /* --------------------------------------------------------
-       SIDEBAR NAVIGATION ITEMS
-    -------------------------------------------------------- */
+    /* ======================================================
+       SIDEBAR NAVIGATION
+    ====================================================== */
 
     [data-testid="stSidebarNav"] a {
         border-radius: 10px !important;
-        margin: 4px 14px !important;
+        margin: 4px 12px !important;
         transition: background-color 0.2s ease;
     }
 
     [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNav"] a span,
-    [data-testid="stSidebarNav"] a p,
-    [data-testid="stSidebarNav"] a div,
+    [data-testid="stSidebarNav"] a *,
     [data-testid="stSidebarNav"] a svg {
         color: #e8eef8 !important;
         fill: #e8eef8 !important;
     }
 
-    /* Material icons */
-
-    [data-testid="stSidebarNav"] a
-    .material-symbols-rounded,
-    [data-testid="stSidebarNav"] a
-    .material-icons {
-        color: #e8eef8 !important;
+    [data-testid="stSidebarNav"] a:hover {
+        background-color: #263b57 !important;
     }
-
-    /* Selected page */
 
     [data-testid="stSidebarNav"]
     a[aria-current="page"],
@@ -181,16 +172,38 @@ st.markdown(
         font-weight: 650 !important;
     }
 
-    /* Hover state */
 
-    [data-testid="stSidebarNav"] a:hover {
-        background-color: #263b57 !important;
+    /* ======================================================
+       REMOVE DUPLICATE DECORATIVE SIDEBAR SECTIONS
+
+       Hide old branding and page descriptions that are
+       rendered below the navigation by individual pages.
+
+       Do not hide functional inputs or filters.
+    ====================================================== */
+
+    [data-testid="stSidebar"]
+    [data-testid="stMarkdownContainer"]:has(.livesflow-logo) {
+        display: none !important;
     }
 
-    /* General sidebar text */
+    [data-testid="stSidebar"]
+    [data-testid="stMarkdownContainer"]:has(.livesflow-subtitle) {
+        display: none !important;
+    }
 
-    [data-testid="stSidebar"] label,
+    /* Hide old sidebar logo markup from previous designs */
+
+    [data-testid="stSidebar"]
+    [data-testid="stMarkdownContainer"]:has(h2)
+    {
+        /* Other headings remain visible by default. */
+    }
+
+    /* Ensure sidebar text and functional controls are readable */
+
     [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] button {
         color: #e8eef8 !important;
     }
@@ -200,14 +213,14 @@ st.markdown(
     }
 
 
-    /* --------------------------------------------------------
-       MOBILE / NARROW SIDEBAR
-    -------------------------------------------------------- */
+    /* ======================================================
+       MOBILE
+    ====================================================== */
 
     @media (max-width: 768px) {
 
         [data-testid="stSidebarNav"] {
-            padding-top: 105px !important;
+            padding-top: 108px !important;
         }
 
         [data-testid="stSidebarNav"]::before,
@@ -218,6 +231,7 @@ st.markdown(
         [data-testid="stSidebarNav"]::after {
             left: 94px;
         }
+
     }
 
     </style>
@@ -234,8 +248,9 @@ pages = []
 
 
 # Regional Analytics
-if (ROOT / "pages" / "regional_analytics.py").exists():
+regional_page = ROOT / "pages" / "regional_analytics.py"
 
+if regional_page.exists():
     pages.append(
         st.Page(
             "pages/regional_analytics.py",
@@ -247,8 +262,9 @@ if (ROOT / "pages" / "regional_analytics.py").exists():
 
 
 # Demand Exception Report
-if (ROOT / "pages" / "exception_dashboard.py").exists():
+exception_page = ROOT / "pages" / "exception_dashboard.py"
 
+if exception_page.exists():
     pages.append(
         st.Page(
             "pages/exception_dashboard.py",
@@ -259,8 +275,9 @@ if (ROOT / "pages" / "exception_dashboard.py").exists():
 
 
 # Master Data Records
-if (ROOT / "pages" / "master_data_records.py").exists():
+master_page = ROOT / "pages" / "master_data_records.py"
 
+if master_page.exists():
     pages.append(
         st.Page(
             "pages/master_data_records.py",
@@ -271,20 +288,17 @@ if (ROOT / "pages" / "master_data_records.py").exists():
 
 
 # ============================================================
-# RUN DASHBOARD
+# START NAVIGATION
 # ============================================================
 
 if pages:
-
     navigation = st.navigation(
         pages,
         position="sidebar",
     )
-
     navigation.run()
 
 else:
-
     st.error(
         "No dashboard pages found. "
         "Please check the pages folder."
