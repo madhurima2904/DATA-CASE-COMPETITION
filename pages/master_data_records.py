@@ -1255,31 +1255,6 @@ if not DEMO.exists():
         "from the available sources."
     )
 
-with st.expander(
-    "Connected Data Sources",
-    expanded=False,
-):
-    sources = []
-
-    for name, path in REQUEST_SOURCES.items():
-        sources.append({
-            "Source": name,
-            "Requests File": str(path),
-            "Available": (
-                "Yes" if path.exists() else "No"
-            ),
-        })
-
-    show_table(
-        pd.DataFrame(sources)
-    )
-
-    st.caption(
-        "The page loads the latest CSV data whenever "
-        "it reruns. Refresh after approving a request."
-    )
-
-
 # ============================================================
 # KPI CARDS
 # ============================================================
