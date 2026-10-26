@@ -1,12 +1,38 @@
 import os
+import shutil
 import pandas as pd
 from datetime import datetime
 
 # ---------- File locations ----------
-RULES = "data/demo/approval_rules.csv"       # demo copy, editable in the Admin tab
-LOGS = "data/demo/approval_logs.csv"
-REQUESTS = "data/demo/mdm_requests.csv"
-RULES_HISTORY = "data/demo/rules_history"    # every old version of the rules
+HERE = os.path.dirname(os.path.abspath(__file__))
+RULES = os.path.join(HERE, "data/demo/approval_rules.csv")       # demo copy, editable in the Admin tab
+LOGS = os.path.join(HERE, "data/demo/approval_logs.csv")
+REQUESTS = os.path.join(HERE, "data/demo/mdm_requests.csv")
+RULES_HISTORY = os.path.join(HERE, "data/demo/rules_history")    # every old version of the rules
+
+# Requests submitted through the MDM request form live in the form's own files.
+# Approvals for those requests are written back there, so the form tracker and
+# the Master Data Records page see the same status.
+FORM_DATA = os.path.join(HERE, "mdm_request_form/request_form/data")
+FORM_REQUESTS = os.path.join(FORM_DATA, "new_requests.csv")
+FORM_LOGS = os.path.join(FORM_DATA, "new_approval_logs.csv")
+
+REQUEST_COLS = ["request_id", "submitted_at", "request_type", "record_name", "requestor",
+                "country", "entity", "status", "current_step", "candidate_existing_id", "notes"]
+LOG_COLS = ["event_id", "request_id", "event_time", "actor", "actor_role", "action", "comments"]
+
+
+def ensure_demo_data():
+    """Create data/demo from data/raw the first time (same as reset_demo.sh)."""
+    raw = os.path.join(HERE, "data/raw")
+    os.makedirs(os.path.dirname(RULES), exist_ok=True)
+    for name in ["approval_logs.csv", "mdm_requests.csv", "approval_rules.csv"]:
+        target = os.path.join(os.path.dirname(RULES), name)
+        if not os.path.exists(target):
+            shutil.copy(os.path.join(raw, name), target)
+
+
+ensure_demo_data()
 
 NOTICES = ["Reminder sent", "Escalated"]
 SYSTEM_EVENTS = NOTICES + ["Routed"]
@@ -14,7 +40,9 @@ SENSITIVE_WORDS = ["bank", "account", "iban", "swift", "credit"]
 
 
 # ---------- Helpers ----------
-def load(path):
+def load(path, cols=None):
+    if not os.path.exists(path):
+        return pd.DataFrame(columns=cols or [])
     return pd.read_csv(path, dtype=str).fillna("")
 
 
@@ -22,14 +50,45 @@ def now():
     return datetime.now().strftime("%Y-%m-%dT%H:%M")
 
 
+def is_form_request(request_id):
+    form = load(FORM_REQUESTS, REQUEST_COLS)
+    return request_id in set(form["request_id"])
+
+
+def store_for(request_id):
+    """(requests file, log file) that own this request."""
+    if is_form_request(request_id):
+        return FORM_REQUESTS, FORM_LOGS
+    return REQUESTS, LOGS
+
+
+def load_requests():
+    """Team demo requests plus requests submitted through the form."""
+    team = load(REQUESTS, REQUEST_COLS).assign(source="Approval Management")
+    form = load(FORM_REQUESTS, REQUEST_COLS).assign(source="Request Form")
+    both = pd.concat([team, form], ignore_index=True).fillna("")
+    return both.drop_duplicates("request_id", keep="last").reset_index(drop=True)
+
+
+def load_logs():
+    both = pd.concat([load(LOGS, LOG_COLS), load(FORM_LOGS, LOG_COLS)], ignore_index=True)
+    return both.fillna("")
+
+
 def add_log(request_id, actor, actor_role, action, comments=""):
     """Add ONE new row to the audit log. Never edits old rows."""
-    logs = load(LOGS)
-    last = logs["event_id"].str[1:].astype(int).max() if len(logs) else 0
-    row = {"event_id": f"E{last + 1:04d}", "request_id": request_id,
+    _, log_path = store_for(request_id)
+    logs = load(log_path, LOG_COLS)
+    if log_path == FORM_LOGS:
+        event_id = f"D{len(logs) + 1:04d}"            # same numbering as the request form
+    else:
+        nums = pd.to_numeric(logs["event_id"].str.extract(r"^E(\d+)$")[0], errors="coerce")
+        last = int(nums.max()) if nums.notna().any() else 0
+        event_id = f"E{last + 1:04d}"
+    row = {"event_id": event_id, "request_id": request_id,
            "event_time": now(), "actor": actor, "actor_role": actor_role,
            "action": action, "comments": comments}
-    pd.concat([logs, pd.DataFrame([row])]).to_csv(LOGS, index=False)
+    pd.concat([logs, pd.DataFrame([row])]).to_csv(log_path, index=False)
 
 
 # ---------- Routing ----------
@@ -45,9 +104,9 @@ def steps_for(request):
 
 
 def progress(request_id):
-    req = load(REQUESTS).set_index("request_id").loc[request_id]
+    req = load_requests().set_index("request_id").loc[request_id]
     steps = steps_for(req)
-    logs = load(LOGS)
+    logs = load_logs()
     logs = logs[logs["request_id"] == request_id]
     approved_roles = set(logs.loc[logs["action"] == "Approved", "actor_role"])
 
@@ -63,7 +122,7 @@ def progress(request_id):
 # ---------- NEW: approval cards sent ----------
 def notify(request_id, roles):
     """Log that each approver was sent a Teams + Outlook approval card (once)."""
-    logs = load(LOGS)
+    logs = load_logs()
     sent = set(logs.loc[(logs["request_id"] == request_id)
                         & (logs["action"] == "Routed"), "actor_role"])
     for role in roles:
@@ -75,7 +134,7 @@ def notify(request_id, roles):
 # ---------- Status ----------
 def update_request(request_id):
     steps, current = progress(request_id)
-    logs = load(LOGS)
+    logs = load_logs()
     actions = list(logs.loc[logs["request_id"] == request_id, "action"])
     actions = [a for a in actions if a not in SYSTEM_EVENTS]   # ignore system rows
 
@@ -92,9 +151,10 @@ def update_request(request_id):
         step = " + ".join(current["approver_role"]) + " review"
         notify(request_id, list(current["approver_role"]))     # NEW
 
-    reqs = load(REQUESTS)
+    req_path, _ = store_for(request_id)
+    reqs = load(req_path, REQUEST_COLS)
     reqs.loc[reqs["request_id"] == request_id, ["status", "current_step"]] = [status, step]
-    reqs.to_csv(REQUESTS, index=False)
+    reqs.to_csv(req_path, index=False)
     return status, step
 
 
@@ -105,15 +165,15 @@ def start_approval(request_id):
 
 # ---------- Reminders ----------
 def hours_waiting(request_id):
-    logs = load(LOGS)
+    logs = load_logs()
     logs = logs[(logs["request_id"] == request_id) & (~logs["action"].isin(NOTICES))]
-    last = pd.to_datetime(logs["event_time"]).max()
+    last = pd.to_datetime(logs["event_time"], format="mixed", errors="coerce").max()
     return (datetime.now() - last).total_seconds() / 3600
 
 
 def overdue_list():
     rows = []
-    for rid in load(REQUESTS).query("status == 'Pending approval'")["request_id"]:
+    for rid in load_requests().query("status == 'Pending approval'")["request_id"]:
         _, current = progress(rid)
         if current.empty:
             continue
@@ -129,7 +189,7 @@ def overdue_list():
 
 def send_reminders():
     sent = 0
-    logs = load(LOGS)
+    logs = load_logs()
     for _, r in overdue_list().iterrows():
         rlogs = logs[logs["request_id"] == r["request_id"]]
         if len(rlogs) and rlogs.iloc[-1]["action"] in NOTICES:
