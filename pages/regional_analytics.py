@@ -590,8 +590,6 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption("Competition prototype")
-    st.caption("Synthetic data · No live SAP connection")
 
 
 # ==========================================================
