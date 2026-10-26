@@ -325,9 +325,19 @@ def _save_request(row):
 
 
 def approval_steps(domain, values):
+    """Approval steps for a request. Same routing as the approvals module:
+    only rows that require review, matching entity / country ('ALL' matches any)."""
     matrix = load_approval_matrix()
     rows = matrix[matrix["request_type"] == domain].copy()
-    rows = rows[[condition_met(c, values) for c in rows["condition"]]]
+    if "requires_review" in rows.columns:
+        rows = rows[rows["requires_review"].isin(["Yes", ""])]
+    request_keys = {"entity": values.get("entity") or values.get("business_entity", ""),
+                    "country": values.get("country", "")}
+    for col, value in request_keys.items():
+        if col in rows.columns and value:
+            rows = rows[rows[col].isin(["ALL", "", value])]
+    if "condition" in rows.columns:
+        rows = rows[[condition_met(c, values) for c in rows["condition"]]]
     rows["step_order"] = rows["step_order"].astype(int)
     return rows.sort_values("step_order").to_dict("records")
 
@@ -344,13 +354,21 @@ def submit_request(domain, values, rules, requestor, override_reason="", candida
     if secret:
         pd.concat([vault, pd.DataFrame(secret)], ignore_index=True).to_csv(DATA / "finance_vault.csv", index=False)
 
+    if not str(values.get("country", "")).strip():
+        # Item / cost center forms have no country field: use the requestor's country
+        users = load_users()
+        match = users[users["display_name"] == requestor]
+        if not match.empty:
+            values = {**values, "country": match.iloc[0]["country"]}
     steps = approval_steps(domain, values)
     notes = f"Duplicate override: {override_reason}" if override_reason else ""
     row = {"request_id": request_id, "submitted_at": datetime.now().isoformat(timespec="minutes"),
            "request_type": domain, "record_name": values.get(NAME_FIELD[domain], ""),
            "requestor": requestor, "country": values.get("country", ""),
            "entity": values.get("business_entity", values.get("entity", "")),
-           "status": "Pending approval", "current_step": steps[0]["approver_role"] if steps else "MDM Analyst",
+           "status": "Pending approval",
+           "current_step": " + ".join(s["approver_role"] for s in steps
+                                      if int(s["step_order"]) == int(steps[0]["step_order"])) if steps else "MDM Analyst",
            "candidate_existing_id": candidate, "notes": notes}
     _save_request(row)
     public = {k: v for k, v in values.items() if k not in sensitive and str(v).strip()}
@@ -359,6 +377,9 @@ def submit_request(domain, values, rules, requestor, override_reason="", candida
                          ignore_index=True)
     payloads.to_csv(DATA / "new_payloads.csv", index=False)
     _append_log(request_id, requestor, "Requestor", "Submitted", "Form complete; duplicate check run")
+    first = [s["approver_role"] for s in steps if int(s["step_order"]) == int(steps[0]["step_order"])] if steps else []
+    for role in first:   # same audit row the approvals module writes for later steps
+        _append_log(request_id, "system", role, "Routed", "Approval card sent in Teams and Outlook")
     return request_id
 
 
@@ -403,36 +424,64 @@ def create_master_record(request_id, domain):
     return code
 
 
-def current_role(row, roles):
-    """Which approver role a request is waiting on (team data uses labels like 'Finance review')."""
-    step = str(row.get("current_step", "")).replace(" review", "").strip()
-    if step in roles:
-        return step
-    if row.get("status") == "Pending approval" and roles:
-        return roles[0]
-    return None
+def _parse_steps(value):
+    """'Finance review' / 'Business Unit Head + Finance' -> ['Finance'] / ['Business Unit Head', 'Finance']."""
+    return [x.replace(" review", "").strip() for x in str(value or "").split("+") if x.strip()]
+
+
+def _approval_state(row):
+    """Return (steps, approved_roles, waiting_roles) for a request.
+    Steps with the same step_order are approved in parallel; the next step_order
+    starts only when every role in the current one has approved."""
+    steps = approval_steps(row["request_type"], {"entity": row.get("entity", ""),
+                                                  "country": row.get("country", "")})
+    roles = [s["approver_role"] for s in steps]
+    logs = load_logs()
+    logs = logs[logs["request_id"] == row["request_id"]]
+    approved = set(logs[logs["action"].str.startswith("Approved")]["actor_role"]) & set(roles)
+    status = row.get("status", "")
+    if status in ("Completed", "Approved - SAP pending"):
+        return steps, set(roles), [], logs
+    # Team history has no per-role approvals: trust current_step and treat earlier steps as done
+    named = [r for r in _parse_steps(row.get("current_step")) if r in roles]
+    if named:
+        first = min(int(s["step_order"]) for s in steps if s["approver_role"] in named)
+        approved |= {s["approver_role"] for s in steps if int(s["step_order"]) < first}
+    waiting = []
+    if status == "Pending approval":
+        for order in sorted({int(s["step_order"]) for s in steps}):
+            group = [s["approver_role"] for s in steps if int(s["step_order"]) == order]
+            left = [r for r in group if r not in approved]
+            if left:
+                waiting = left
+                break
+    return steps, approved, waiting, logs
+
+
+def waiting_roles(row):
+    return _approval_state(row)[2]
+
+
+def current_role(row, roles=None):
+    """First role a request is waiting on (kept for older callers)."""
+    w = waiting_roles(row)
+    return w[0] if w else None
 
 
 def request_progress(row):
     """Steps for a request with their status, rebuilt from the approval matrix and logs."""
-    steps = approval_steps(row["request_type"], {})
-    roles = [s["approver_role"] for s in steps]
-    logs = load_logs()
-    logs = logs[logs["request_id"] == row["request_id"]]
-    approved_roles = set(logs[logs["action"] == "Approved"]["actor_role"])
+    steps, approved, waiting, logs = _approval_state(row)
     status = row["status"]
-    waiting = current_role(row, roles)
-    if waiting in roles:
-        approved_roles |= set(roles[:roles.index(waiting)])
     out, flagged = [], False
-    for role, s in zip(roles, steps):
-        if status in ("Completed", "Approved - SAP pending") or role in approved_roles:
+    for s in steps:
+        role = s["approver_role"]
+        if role in approved:
             st = "Approved"
         elif not flagged and status == "Rejected":
             st, flagged = "Rejected", True
         elif not flagged and status == "Returned for correction":
             st, flagged = "Returned to requestor", True
-        elif role == waiting:
+        elif role in waiting:
             st = "Waiting"
         else:
             st = "Pending"
@@ -441,9 +490,9 @@ def request_progress(row):
     return done, len(out), out, logs
 
 
-def demo_approve(request_id, users):
-    """Demo helper: the approver for the current step approves; after the MDM Analyst
-    the record is handed off to SAP B1 (mock code)."""
+def demo_approve(request_id, users, role=None):
+    """Demo helper: one waiting approver approves (parallel steps need every role);
+    once all steps are done the MDM analyst hands the record off to SAP B1 (mock)."""
     row = load_requests().set_index("request_id").loc[request_id].to_dict()
     row["request_id"] = request_id
     if row["status"] == "Approved - SAP pending":
@@ -454,15 +503,16 @@ def demo_approve(request_id, users):
         row.update(status="Completed", current_step="Finalized", notes=(row["notes"] + f" Mock SAP code {code}").strip())
         _save_request(row)
         return
-    steps = approval_steps(row["request_type"], {})
-    roles = [s["approver_role"] for s in steps]
-    role = current_role(row, roles) or roles[0]
+    waiting = waiting_roles(row)
+    if not waiting:
+        return
+    role = role if role in waiting else waiting[0]
     match = users[users["role"] == role]
     actor = match.iloc[0]["display_name"] if not match.empty else role
     _append_log(request_id, actor, role, "Approved", "Approved in Teams (demo)")
-    nxt = roles.index(role) + 1
-    if nxt < len(roles):
-        row.update(status="Pending approval", current_step=roles[nxt])
+    still = waiting_roles(row)
+    if still:
+        row.update(status="Pending approval", current_step=" + ".join(still))
     else:
         row.update(status="Approved - SAP pending", current_step="SAP handoff")
     _save_request(row)
@@ -475,3 +525,7 @@ def reset_demo():
         if p.exists():
             p.unlink()
     pd.DataFrame(columns=["request_id", "field", "value"]).to_csv(DATA / "finance_vault.csv", index=False)
+    # Final-review history kept by the Master Data Records page (mock SAP handoffs)
+    handoff_db = RAW.parent / "processed" / "mock_sap_handoffs.sqlite3"
+    if handoff_db.exists():
+        handoff_db.unlink()

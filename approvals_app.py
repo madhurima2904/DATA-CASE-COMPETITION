@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import streamlit as st
 from approvals import *
@@ -9,7 +10,7 @@ if "flash" in st.session_state:
     st.toast(st.session_state.pop("flash"))
 
 # ---------- Who is signed in ----------
-users = load("data/raw/users_and_roles.csv")
+users = load(os.path.join(HERE, "data/raw/users_and_roles.csv"))
 users = users[users["active"] == "Yes"]
 approvers = users[users["role"] != "Requestor"].reset_index(drop=True)
 
@@ -36,7 +37,7 @@ def decide(rid, action, comment):
 
 
 # ---------- Find my requests ----------
-reqs = load(REQUESTS)
+reqs = load_requests()
 pending = reqs[reqs["status"] == "Pending approval"]
 mine = []
 for _, req in pending.iterrows():
@@ -91,7 +92,7 @@ with tab2:
     od = overdue_list()
 
     m1, m2, m3 = st.columns(3)
-    m1.metric("Pending approval", int((load(REQUESTS)["status"] == "Pending approval").sum()))
+    m1.metric("Pending approval", int((load_requests()["status"] == "Pending approval").sum()))
     m2.metric("Overdue", len(od))
     m3.metric("Escalated", int(od["escalate"].sum()) if not od.empty else 0)
 
@@ -108,8 +109,8 @@ with tab2:
 with tab3:
     st.title("Audit trail")
     st.caption("Every action on a request, in order. Rows are only ever added, never edited.")
-    rid = st.selectbox("Request", load(REQUESTS)["request_id"])
-    st.dataframe(load(LOGS).query("request_id == @rid"), hide_index=True)
+    rid = st.selectbox("Request", load_requests()["request_id"])
+    st.dataframe(load_logs().query("request_id == @rid"), hide_index=True)
 
 # ---------- Tab 4: Admin ----------
 with tab4:
@@ -130,4 +131,4 @@ with tab4:
             st.rerun()
 
     st.subheader("Rule change history")
-    st.dataframe(load(LOGS).query("request_id == 'RULES'"), hide_index=True)
+    st.dataframe(load(LOGS, LOG_COLS).query("request_id == 'RULES'"), hide_index=True)
