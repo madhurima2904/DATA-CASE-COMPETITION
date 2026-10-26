@@ -1005,6 +1005,61 @@ with tab2:
     )
 
     # ------------------------------------------------------
+    # GROWTH DEFINITION — EXPLICIT MEASURE / PERIOD / FORMULA
+    # ------------------------------------------------------
+
+    half = len(selected_months) // 2
+    if half >= 1:
+        earlier_period = selected_months[:half]
+        later_period = selected_months[-half:]
+        comparison_label = (
+            f"{earlier_period[0]} to {earlier_period[-1]}"
+            f" versus {later_period[0]} to {later_period[-1]}"
+        )
+        unused_month_note = (
+            " With an odd number of selected months, the middle month "
+            "is excluded to keep both periods the same length."
+            if len(selected_months) % 2 else ""
+        )
+    else:
+        comparison_label = "Select at least two months to calculate growth."
+        unused_month_note = ""
+
+    with st.expander("Growth Definition · How growth is calculated", expanded=False):
+        st.markdown(
+            "**What we measure:** Confirmed purchase-order units (quantity), "
+            "not order value or number of orders."
+        )
+        st.markdown(
+            "**Growing markets and products:** We compare two equal-length "
+            "halves of the selected analysis period, grouped by country and product."
+        )
+        st.markdown(f"**Current comparison:** {comparison_label}")
+        st.markdown("**Growth formula:**")
+        st.latex(
+            r"\text{Growth (\%)} = "
+            r"\frac{\text{Later units} - \text{Earlier units}}"
+            r"{\text{Earlier units}} \times 100"
+        )
+        st.caption(
+            "Growth is not calculated when the earlier period has zero confirmed units."
+        )
+        st.divider()
+        st.markdown(
+            "**Declining customers:** We separately compare each customer's "
+            "latest three months against the previous three months. "
+            "At least six months of selected data are required."
+        )
+        st.markdown("**Change formula:**")
+        st.latex(
+            r"\text{Change (\%)} = "
+            r"\frac{\text{Recent units} - \text{Previous units}}"
+            r"{\text{Previous units}} \times 100"
+        )
+        if unused_month_note:
+            st.caption(unused_month_note.strip())
+
+    # ------------------------------------------------------
     # CROSS-SELLING CANDIDATES
     # ------------------------------------------------------
 
