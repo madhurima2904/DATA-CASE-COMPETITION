@@ -1,0 +1,36 @@
+domain,field,label,type,options,required,required_if,sensitive,help
+Customer,customer_name,Customer name,text,,TRUE,,FALSE,Official registered name of the hospital / lab / clinic
+Customer,business_entity,Business entity,select,@customers.business_entity,TRUE,,FALSE,Which Lives Group entity will transact with this customer
+Customer,country,Country,select,@customers.country,TRUE,,FALSE,
+Customer,city,City,text,,TRUE,,FALSE,
+Customer,customer_type,Customer type,select,@customers.customer_type,TRUE,,FALSE,
+Customer,registration_no,Registration number,text,,TRUE,,FALSE,e.g. SG-REG-100123 - used to catch duplicates
+Customer,contact_email,Contact email,email,,TRUE,,FALSE,
+Customer,payment_terms,Payment terms,select,30 days|60 days|90 days,TRUE,,TRUE,Visible to Finance only
+Customer,credit_limit,Credit limit (SGD),number,,TRUE,,TRUE,Visible to Finance only
+Item,item_name,Item name,text,,TRUE,,FALSE,e.g. A - Diagnostic Reagent 4
+Item,product_group,Product group,select,@items.product_group,TRUE,,FALSE,
+Item,category,Category,select,@items.category,TRUE,,FALSE,
+Item,business_entity,Business entity,select,@customers.business_entity,TRUE,,FALSE,
+Item,manufacturer,Manufacturer,text,,TRUE,,FALSE,
+Item,unit,Unit,select,@items.unit,TRUE,,FALSE,
+Item,regulatory_status,Regulatory status,select,@items.regulatory_status,TRUE,,FALSE,Approved or pending registration in the target country
+Item,storage_condition,Storage condition,select,Ambient|2-8 C|-20 C,TRUE,,FALSE,
+Item,shelf_life_months,Shelf life (months),number,,FALSE,category=Diagnostic reagent|Laboratory consumable,FALSE,Required for reagents and consumables
+Item,regulatory_licence_no,Regulatory licence number,text,,FALSE,category=Diagnostic reagent;product_group=Product C,FALSE,Required for reagents and all Product C items
+Vendor,vendor_name,Vendor name,text,,TRUE,,FALSE,
+Vendor,business_entity,Business entity,select,@vendors.business_entity,TRUE,,FALSE,
+Vendor,country,Country,select,@vendors.country,TRUE,,FALSE,
+Vendor,city,City,text,,TRUE,,FALSE,
+Vendor,registration_no,Registration number,text,,TRUE,,FALSE,
+Vendor,contact_email,Contact email,email,,TRUE,,FALSE,
+Vendor,bank_name,Bank name,text,,TRUE,,TRUE,Visible to Finance only
+Vendor,bank_account_no,Bank account number,text,,TRUE,,TRUE,Visible to Finance only
+Vendor,swift_code,SWIFT code,text,,TRUE,,TRUE,8 or 11 characters
+Vendor,payment_terms,Payment terms,select,30 days|60 days|90 days,TRUE,,TRUE,Visible to Finance only
+Cost Center,cost_center_name,Cost center name,text,,TRUE,,FALSE,e.g. Singapore SPD Operations
+Cost Center,entity,Business entity,select,@cost_centers.entity,TRUE,,FALSE,
+Cost Center,country,Country,select,@cost_centers.country,TRUE,,FALSE,
+Cost Center,department,Department,select,Sales|Marketing|Operations|Finance|Quality/Regulatory,TRUE,,FALSE,
+Cost Center,budget_owner_email,Budget owner email,email,,TRUE,,FALSE,
+Cost Center,effective_date,Effective date,date,,TRUE,,FALSE,

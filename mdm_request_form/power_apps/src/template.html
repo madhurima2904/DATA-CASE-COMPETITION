@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDM Requests - Teams app mock-up</title>
+<style>
+:root{
+  --rail:#ebebeb; --bar:#f5f5f5; --bg:#f5f5f5; --card:#ffffff; --ink:#242424; --muted:#616161; --line:#e0e0e0;
+  --brand:#5b5fc7; --brand-dark:#4f52b2; --brand-soft:#e8ebfa;
+  --ok:#0e700e; --ok-soft:#e6f4e6; --warn:#8a5300; --warn-soft:#fff4ce; --bad:#b10e1c; --bad-soft:#fde7e9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Segoe UI","Segoe UI Web",-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.mock{background:#fff8e1;color:#5d4200;border-bottom:1px solid #f0d78a;font-size:12px;padding:5px 16px;text-align:center}
+.top{height:48px;background:var(--bar);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:0 16px}
+.top .search{flex:1;max-width:560px;margin:0 auto;height:32px;border-radius:6px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:0 10px;color:var(--muted)}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+.shell{display:flex;height:calc(100% - 48px - 27px)}
+.rail{width:68px;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:2px}
+.rail a{width:60px;padding:8px 0;border-radius:6px;color:var(--muted);text-decoration:none;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.rail a svg{width:20px;height:20px}
+.rail a.on{color:var(--brand);background:#fff}
+.rail .appicon{width:22px;height:22px;border-radius:5px;background:var(--brand);color:#fff;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+.apphead{background:#fff;border-bottom:1px solid var(--line);padding:10px 24px 0}
+.apptitle{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.apptitle .ic{width:28px;height:28px;border-radius:6px;background:var(--brand);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.apptitle h1{font-size:18px;margin:0;font-weight:600}
+.apptitle .who{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.apptitle select{height:30px;border:1px solid var(--line);border-radius:4px;background:#fff;padding:0 8px}
+.tabs{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.tabs button{background:none;border:0;padding:10px 12px;color:var(--muted);border-bottom:3px solid transparent;font-weight:600}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--brand)}
+.tabs .badge[hidden]{display:none}
+.tabs .badge{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;line-height:18px}
+.content{flex:1;overflow:auto;padding:20px 24px 40px}
+.grid2{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;align-items:start}
+@media (max-width:980px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:20px}
+.card h2{font-size:16px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 14px}
+.seg button.on{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark);font-weight:600}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px}
+@media (max-width:640px){.fields{grid-template-columns:1fr}}
+.field label{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;margin-bottom:5px}
+.field .req{color:var(--bad)}
+.field .lock{font-size:11px;font-weight:600;color:#6b4a00;background:var(--warn-soft);border-radius:4px;padding:1px 6px}
+.field input,.field select{width:100%;height:34px;border:1px solid #c7c7c7;border-bottom:2px solid #8a8a8a;border-radius:4px;padding:0 10px;background:#fff}
+.field input:focus,.field select:focus{outline:none;border-bottom-color:var(--brand)}
+.field .help{font-size:12px;color:var(--muted);margin-top:4px}
+.field.missing input,.field.missing select{border-bottom-color:var(--bad)}
+.checks h3{font-size:14px;margin:0 0 8px}
+.alert{border-radius:6px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.alert.ok{background:var(--ok-soft);color:var(--ok)}
+.alert.warn{background:var(--warn-soft);color:var(--warn)}
+.alert.bad{background:var(--bad-soft);color:var(--bad)}
+.alert.info{background:var(--brand-soft);color:var(--brand-dark)}
+.alert ul{margin:6px 0 0;padding-left:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:12px}
+.pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:600}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--brand-soft);color:var(--brand-dark)}
+.pill.grey{background:#f0f0f0;color:var(--muted)}
+.route{list-style:none;margin:0 0 14px;padding:0}
+.route li{display:flex;gap:10px;align-items:center;padding:6px 0}
+.route .n{width:22px;height:22px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:4px;height:34px;padding:0 16px;font-weight:600}
+.btn:hover{background:var(--brand-dark)}
+.btn[disabled]{background:#e0e0e0;color:#9e9e9e;cursor:not-allowed}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid #c7c7c7}
+.btn.danger{background:#fff;color:var(--bad);border:1px solid #e3a5ab}
+.btn.wide{width:100%}
+.override{border:1px dashed #e3a5ab;border-radius:6px;padding:10px;margin-bottom:12px;font-size:13px}
+.override input[type=text]{width:100%;height:32px;margin-top:6px;border:1px solid #c7c7c7;border-radius:4px;padding:0 8px}
+.reqcard{background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:12px}
+.reqhead{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.reqhead .t{font-weight:600}
+.reqhead .m{color:var(--muted);font-size:12px;margin-top:2px}
+.reqhead .s{margin-left:auto}
+.stepper{display:flex;gap:0;margin:14px 0 4px;flex-wrap:wrap}
+.step{flex:1;min-width:120px;position:relative;padding-top:20px;font-size:12px}
+.step:before{content:"";position:absolute;top:7px;left:0;right:0;height:3px;background:#e0e0e0}
+.step .dot{position:absolute;top:0;left:0;width:17px;height:17px;border-radius:50%;background:#fff;border:3px solid #c7c7c7}
+.step.done:before{background:var(--ok)} .step.done .dot{border-color:var(--ok);background:var(--ok)}
+.step.now .dot{border-color:var(--brand)} .step.stop .dot{border-color:var(--bad);background:var(--bad)}
+.step .r{font-weight:600;padding-right:8px} .step .w{color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar input,.toolbar select{height:32px;border:1px solid #c7c7c7;border-radius:4px;padding:0 8px;background:#fff}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:4px 12px;font-size:13px;margin:10px 0}
+.kv div:nth-child(odd){color:var(--muted)}
+.toast{position:fixed;right:20px;bottom:20px;max-width:360px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:12px 14px;font-size:13px;display:none}
+.toast b{display:block;margin-bottom:2px}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:10px 0 16px}
+@media (max-width:900px){.flow{grid-template-columns:1fr}}
+.flow div{background:var(--brand-soft);border-radius:6px;padding:10px;font-size:12px}
+.flow b{display:block;font-size:13px;color:var(--brand-dark);margin-bottom:2px}
+.empty{color:var(--muted);text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<div class="mock">Prototype mock-up of a Power Apps form inside Microsoft Teams &middot; synthetic competition data &middot; not connected to Microsoft 365 or SAP B1</div>
+<div class="top">
+  <div class="search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</div>
+  <div class="avatar" id="avatar" aria-label="Signed-in user">AT</div>
+</div>
+<div class="shell">
+  <nav class="rail" aria-label="App bar">
+    <a href="#" aria-label="Activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/></svg>Activity</a>
+    <a href="#" aria-label="Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>Chat</a>
+    <a href="#" aria-label="Teams"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M3 19c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M15 14.5c3 0 6 1.4 6 4.5"/></svg>Teams</a>
+    <a href="#" aria-label="Calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</a>
+    <a href="#" class="on" aria-label="MDM Requests app"><span class="appicon">MDM</span>MDM</a>
+    <a href="#" aria-label="Apps"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>Apps</a>
+  </nav>
+  <main>
+    <div class="apphead">
+      <div class="apptitle">
+        <div class="ic">MDM</div>
+        <h1>MDM Requests</h1><span class="pill grey">Power Apps</span>
+        <div class="who"><label for="who">Signed in as</label><select id="who"></select></div>
+      </div>
+      <div class="tabs" role="tablist">
+        <button data-tab="new" class="on" role="tab">New request</button>
+        <button data-tab="mine" role="tab">My requests</button>
+        <button data-tab="approvals" role="tab">Approvals<span class="badge" id="apbadge" hidden>0</span></button>
+        <button data-tab="about" role="tab">About</button>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/*__DATA__*/
+/*__MATCH__*/
+
+const DOMAINS = ["Customer", "Item", "Vendor", "Cost Center"];
+const NAME_FIELD = {Customer: "customer_name", Item: "item_name", Vendor: "vendor_name", "Cost Center": "cost_center_name"};
+const ID_PREFIX = {Customer: "C", Item: "I", Vendor: "V", "Cost Center": "CC"};
+const MASTER = {
+  Customer: DATA.customers.map(r => ({code: r.customer_id, name: r.customer_name, entity: r.business_entity, country: r.country, reg_no: r.registration_no || ""})),
+  Item: DATA.items.map(r => ({code: r.item_id, name: r.item_name, entity: "", country: "", reg_no: ""})),
+  Vendor: DATA.vendors.map(r => ({code: r.vendor_id, name: r.vendor_name, entity: r.business_entity, country: r.country, reg_no: ""})),
+  "Cost Center": DATA.cost_centers.map(r => ({code: r.cost_center_id, name: r.cost_center_name, entity: r.entity, country: r.country, reg_no: ""})),
+};
+
+const state = {tab: "new", domain: "Customer", values: {}, touched: new Set(), user: DATA.users[0], requests: [], override: false, overrideReason: ""};
+
+// Seed: a few team history requests (from mdm_requests.csv) plus Amy's item request from the brief
+state.requests = DATA.history.map(r => ({...r, history: true}));
+state.requests.push({
+  id: "R037", type: "Item", name: "Glucose Control Solution L1/L2", requestor: "Amy Tan", entity: "SPD", country: "Singapore",
+  submitted: "2026-10-24 09:00", status: "Pending approval", step: 1, values: {item_name: "Glucose Control Solution L1/L2", product_group: "Product A", category: "Laboratory consumable", business_entity: "SPD", unit: "units", regulatory_status: "Approved"},
+  log: [["2026-10-24 09:00", "Amy Tan", "Requestor", "Submitted"], ["2026-10-24 15:20", "Siti Rahman", "Quality/Regulatory", "Approved"]], secret: {},
+});
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const now = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
+function conditionMet(cond, values) {
+  cond = (cond || "").trim();
+  if (!cond) return true;
+  return cond.split(";").some(clause => {
+    const i = clause.indexOf("=");
+    if (i < 0) return false;
+    const f = clause.slice(0, i).trim(), opts = clause.slice(i + 1).split("|").map(s => s.trim());
+    return opts.includes(String(values[f] ?? "").trim());
+  });
+}
+const isRequired = (rule, values) => rule.required || (rule.required_if && conditionMet(rule.required_if, values));
+const rulesFor = d => DATA.fields.filter(r => r.domain === d);
+const routeFor = d => DATA.rules.filter(r => r.request_type === d).sort((a, b) => a.step_order - b.step_order);
+
+function validate(domain, values) {
+  const out = [];
+  for (const r of rulesFor(domain)) {
+    const v = values[r.field];
+    const empty = v === undefined || String(v).trim() === "";
+    if (isRequired(r, values) && empty) { out.push(r.label + " is required"); continue; }
+    if (empty) continue;
+    if (r.type === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) out.push(r.label + " is not a valid email");
+    if (r.field === "swift_code" && !/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(String(v).toUpperCase())) out.push("SWIFT code must be 8 or 11 letters/digits");
+    if (r.type === "number" && Number(v) <= 0) out.push(r.label + " must be greater than 0");
+  }
+  return out;
+}
+
+function userFor(role) {
+  const u = DATA.users.find(x => x.role === role);
+  return u ? u.display_name : role + " team";
+}
+
+function toast(title, body) {
+  const t = document.getElementById("toast");
+  t.innerHTML = `<b>${esc(title)}</b>${esc(body)}`;
+  t.style.display = "block";
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => (t.style.display = "none"), 4200);
+}
+
+// ---------- New request ----------
+function renderNew() {
+  const d = state.domain, rules = rulesFor(d), v = state.values;
+  const fieldHtml = rules.map(r => {
+    const req = isRequired(r, v);
+    const id = "f_" + r.field;
+    const val = v[r.field] ?? "";
+    let input;
+    if (r.type === "select") {
+      input = `<select id="${id}" data-f="${r.field}"><option value=""></option>${r.options.map(o => `<option ${o === val ? "selected" : ""}>${esc(o)}</option>`).join("")}</select>`;
+    } else {
+      const type = r.sensitive ? "password" : r.type === "number" ? "number" : r.type === "date" ? "date" : r.type === "email" ? "email" : "text";
+      input = `<input id="${id}" data-f="${r.field}" type="${type}" value="${esc(val)}" autocomplete="off">`;
+    }
+    return `<div class="field" data-wrap="${r.field}"><label for="${id}">${esc(r.label)}${req ? ' <span class="req">*</span>' : ""}${r.sensitive ? ' <span class="lock">Finance only</span>' : ""}</label>${input}${r.help ? `<div class="help">${esc(r.help)}</div>` : ""}</div>`;
+  }).join("");
+
+  document.getElementById("content").innerHTML = `
+  <div class="grid2">
+    <div class="card">
+      <h2>New master data request</h2>
+      <p class="sub">One form for every request type. Fields, required rules and approvers come from tables the MDM team maintains.</p>
+      <div class="seg" role="radiogroup" aria-label="Request type">${DOMAINS.map(x => `<button data-dom="${x}" class="${x === d ? "on" : ""}" role="radio" aria-checked="${x === d}">${x}</button>`).join("")}</div>
+      <div class="fields">${fieldHtml}</div>
+    </div>
+    <div class="card checks" id="checks"></div>
+  </div>`;
+
+  document.querySelectorAll("[data-dom]").forEach(b => b.onclick = () => { state.domain = b.dataset.dom; state.values = {}; state.touched = new Set(); state.override = false; state.overrideReason = ""; renderNew(); });
+  document.querySelectorAll("[data-f]").forEach(el => {
+    const handler = () => {
+      state.values[el.dataset.f] = el.value;
+      state.touched.add(el.dataset.f);
+      if (el.tagName === "SELECT") renderNew(); else renderChecks();
+    };
+    el.addEventListener(el.tagName === "SELECT" ? "change" : "input", handler);
+  });
+  renderChecks();
+}
+
+function renderChecks() {
+  const d = state.domain, v = state.values;
+  const name = v[NAME_FIELD[d]] || "", reg = v.registration_no || "";
+  const dupes = findDuplicates(MASTER[d].concat(state.created?.[d] || []), name, reg, v.country || "");
+  const level = dupes.length ? duplicateLevel(dupes[0].score) : "ok";
+  const problems = validate(d, v);
+  document.querySelectorAll("[data-wrap]").forEach(w => {
+    const f = w.dataset.wrap, label = rulesFor(d).find(r => r.field === f).label;
+    const bad = problems.some(p => p.startsWith(label));
+    const show = state.touched.has(f) || String(v[f] ?? "").trim() !== "";
+    w.classList.toggle("missing", bad && show);
+  });
+
+  let dupHtml;
+  if (!name && !reg) dupHtml = `<div class="alert info">Start typing a name to check SAP B1 for existing records.</div>`;
+  else if (!dupes.length) dupHtml = `<div class="alert ok">No similar records found in SAP B1.</div>`;
+  else dupHtml = `<div class="alert ${level === "block" ? "bad" : "warn"}">${level === "ok" ? "Similar records exist" : "Possible duplicate found"} - please check before submitting.</div>
+    <table><thead><tr><th>Code</th><th>Name</th><th>Entity</th><th>Match</th></tr></thead><tbody>
+    ${dupes.map(x => `<tr><td>${esc(x.code)}</td><td>${esc(x.name)}<br><span style="color:var(--muted);font-size:12px">${esc(x.reason)}</span></td><td>${esc(x.entity || "-")}</td><td>${x.score}%</td></tr>`).join("")}</tbody></table><div style="height:12px"></div>`;
+
+  const probHtml = problems.length
+    ? `<div class="alert warn"><b>Missing or invalid</b><ul>${problems.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>`
+    : `<div class="alert ok">All required fields complete.</div>`;
+  const route = routeFor(d);
+  const routeHtml = `<h3>Approval route</h3><ol class="route">${route.map(r => `<li><span class="n">${r.step_order}</span><span>${esc(r.approver_role)} <span style="color:var(--muted)">- ${esc(userFor(r.approver_role))}, reminder after ${r.step_order == route.length ? 24 : 48} h</span></span></li>`).join("")}</ol>`;
+
+  const overrideHtml = level === "block" ? `<div class="override"><label><input type="checkbox" id="ovr" ${state.override ? "checked" : ""}> I confirmed this is NOT the same record</label>${state.override ? `<input type="text" id="ovrr" placeholder="Reason (shown to the MDM team)" value="${esc(state.overrideReason)}">` : ""}</div>` : "";
+  const canSubmit = !problems.length && (level !== "block" || (state.override && state.overrideReason.trim()));
+
+  const box = document.getElementById("checks");
+  box.innerHTML = `<h3>Live checks</h3>${dupHtml}${probHtml}${routeHtml}${overrideHtml}<button class="btn wide" id="submit" ${canSubmit ? "" : "disabled"}>Submit request</button>`;
+  const ovr = document.getElementById("ovr");
+  if (ovr) ovr.onchange = () => { state.override = ovr.checked; renderChecks(); };
+  const ovrr = document.getElementById("ovrr");
+  if (ovrr) { ovrr.oninput = () => { state.overrideReason = ovrr.value; document.getElementById("submit").disabled = !(validate(d, v).length === 0 && ovrr.value.trim()); }; }
+  document.getElementById("submit").onclick = () => submit(dupes, level);
+}
+
+function submit(dupes, level) {
+  const d = state.domain, v = {...state.values};
+  const nums = state.requests.map(r => parseInt(r.id.slice(1), 10)).filter(n => !isNaN(n));
+  const id = "R" + String(Math.max(0, ...nums) + 1).padStart(3, "0");
+  const sensitive = rulesFor(d).filter(r => r.sensitive).map(r => r.field);
+  const secret = {}, pub = {};
+  for (const [k, val] of Object.entries(v)) (sensitive.includes(k) ? secret : pub)[k] = val;
+  const route = routeFor(d);
+  state.requests.push({
+    id, type: d, name: v[NAME_FIELD[d]], requestor: state.user.display_name, entity: v.business_entity || v.entity || "",
+    country: v.country || "", submitted: now(), status: "Pending approval", step: 0, values: pub, secret,
+    note: level === "block" ? "Duplicate override: " + state.overrideReason + " (closest: " + dupes[0].code + ")" : "",
+    log: [[now(), state.user.display_name, "Requestor", "Submitted"]],
+  });
+  state.values = {}; state.touched = new Set(); state.override = false; state.overrideReason = "";
+  toast("Request " + id + " submitted", "Approval request sent in Teams to " + userFor(route[0].approver_role) + " (" + route[0].approver_role + ").");
+  state.tab = "mine"; render();
+}
+
+// ---------- My requests / Approvals ----------
+function stepper(r) {
+  const route = routeFor(r.type);
+  return `<div class="stepper">${route.map((s, i) => {
+    let cls = "", w = "Pending";
+    if (r.status === "Completed" || r.status === "Approved - SAP pending" || i < r.step) { cls = "done"; w = "Approved"; }
+    else if (i === r.step && r.status === "Rejected") { cls = "stop"; w = "Rejected"; }
+    else if (i === r.step && r.status === "Returned for correction") { cls = "stop"; w = "Returned"; }
+    else if (i === r.step) { cls = "now"; w = "Waiting - " + userFor(s.approver_role); }
+    return `<div class="step ${cls}"><span class="dot"></span><div class="r">${esc(s.approver_role)}</div><div class="w">${esc(w)}</div></div>`;
+  }).join("")}<div class="step ${r.status === "Completed" ? "done" : r.status === "Approved - SAP pending" ? "now" : ""}"><span class="dot"></span><div class="r">SAP B1</div><div class="w">${r.status === "Completed" ? esc(r.sap || "Created") : r.status === "Approved - SAP pending" ? "Ready for handoff" : "-"}</div></div></div>`;
+}
+
+const STATUS_PILL = {"Pending approval": "info", "Approved - SAP pending": "warn", "Completed": "ok", "Rejected": "bad", "Returned for correction": "warn"};
+
+function reqCard(r, actions) {
+  const done = r.status === "Completed" || r.status === "Approved - SAP pending" ? routeFor(r.type).length : r.step;
+  return `<div class="reqcard">
+    <div class="reqhead"><div><div class="t">${esc(r.id)} - ${esc(r.type)}: ${esc(r.name)}</div>
+    <div class="m">${esc(r.entity)} &middot; ${esc(r.country)} &middot; by ${esc(r.requestor)} &middot; submitted ${esc(r.submitted)}${r.history ? " &middot; team history" : ""}</div></div>
+    <div class="s"><span class="pill ${STATUS_PILL[r.status] || "grey"}">${esc(r.status)} (${done}/${routeFor(r.type).length})</span></div></div>
+    ${stepper(r)}
+    ${r.note ? `<div class="alert warn" style="margin-top:10px">${esc(r.note)}</div>` : ""}
+    ${actions || ""}
+    ${r.log && r.log.length ? `<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--muted);font-size:12px">Audit trail</summary><table style="margin-top:6px"><thead><tr><th>Time</th><th>Who</th><th>Role</th><th>Action</th></tr></thead><tbody>${r.log.map(l => `<tr>${l.map(x => `<td>${esc(x)}</td>`).join("")}</tr>`).join("")}</tbody></table></details>` : ""}
+  </div>`;
+}
+
+function renderMine() {
+  const all = state.mineAll;
+  const list = state.requests.filter(r => all || r.requestor === state.user.display_name).slice().reverse();
+  document.getElementById("content").innerHTML = `
+    <div class="toolbar"><label class="row"><input type="checkbox" id="allreq" ${all ? "checked" : ""}> Show all requests (including team history)</label></div>
+    ${list.length ? list.map(r => reqCard(r)).join("") : `<div class="card empty">No requests for ${esc(state.user.display_name)} yet. Switch "Signed in as" or submit one from New request.</div>`}`;
+  document.getElementById("allreq").onchange = e => { state.mineAll = e.target.checked; renderMine(); };
+}
+
+function waitingOnMe() {
+  const role = state.user.role;
+  return state.requests.filter(r => {
+    if (r.status === "Approved - SAP pending") return role === "MDM Analyst";
+    if (r.status !== "Pending approval") return false;
+    const step = routeFor(r.type)[r.step];
+    return step && step.approver_role === role;
+  });
+}
+
+function renderApprovals() {
+  const list = waitingOnMe();
+  const isFinance = state.user.role === "Finance";
+  document.getElementById("content").innerHTML = `
+    <p class="sub">Requests waiting on <b>${esc(state.user.display_name)}</b> (${esc(state.user.role)}). In production these arrive as approval cards in Teams and Outlook.</p>
+    ${list.length ? list.map(r => {
+      const lab = k => (rulesFor(r.type).find(x => x.field === k) || {label: k.replace(/_/g, " ")}).label;
+      const details = Object.entries(r.values || {}).map(([k, val]) => `<div>${esc(lab(k))}</div><div>${esc(val)}</div>`).join("");
+      const secrets = Object.keys(r.secret || {}).length ? Object.entries(r.secret).map(([k, val]) => `<div>${esc(lab(k))}</div><div>${isFinance ? esc(val) : "&#8226;&#8226;&#8226;&#8226;&#8226;&#8226; (Finance only)"}</div>`).join("") : "";
+      const sap = r.status === "Approved - SAP pending";
+      const actions = `<div class="kv">${details}${secrets}</div>
+        <div class="row">${sap ? `<button class="btn" data-sap="${r.id}">Create record in SAP B1</button>` : `<button class="btn" data-ok="${r.id}">Approve</button><button class="btn danger" data-no="${r.id}">Reject</button>`}</div>`;
+      return reqCard(r, actions);
+    }).join("") : `<div class="card empty">Nothing waiting on you. Try signing in as another approver, e.g. Daniel Wong (Business Unit Head), Wei Jie Lim (Finance) or Priya Shah (MDM Analyst).</div>`}`;
+  document.querySelectorAll("[data-ok]").forEach(b => b.onclick = () => decide(b.dataset.ok, true));
+  document.querySelectorAll("[data-no]").forEach(b => b.onclick = () => decide(b.dataset.no, false));
+  document.querySelectorAll("[data-sap]").forEach(b => b.onclick = () => createInSap(b.dataset.sap));
+}
+
+function decide(id, ok) {
+  const r = state.requests.find(x => x.id === id), route = routeFor(r.type);
+  if (!ok) {
+    const reason = prompt("Reason for rejecting (sent to the requestor):", "");
+    if (reason === null) return;
+    r.status = "Rejected"; r.note = "Rejected by " + state.user.display_name + ": " + reason;
+    r.log.push([now(), state.user.display_name, state.user.role, "Rejected"]);
+    toast(id + " rejected", "The requestor has been notified in Teams.");
+  } else {
+    r.log.push([now(), state.user.display_name, state.user.role, "Approved"]);
+    r.step += 1;
+    if (r.step >= route.length) { r.status = "Approved - SAP pending"; toast(id + " fully approved", "Handed to the MDM team for SAP B1 creation."); }
+    else toast(id + " approved", "Next: " + userFor(route[r.step].approver_role) + " (" + route[r.step].approver_role + ") notified in Teams.");
+  }
+  render();
+}
+
+function createInSap(id) {
+  const r = state.requests.find(x => x.id === id), prefix = ID_PREFIX[r.type];
+  const pool = MASTER[r.type].concat(state.created?.[r.type] || []);
+  const nums = pool.map(x => parseInt(x.code.slice(prefix.length), 10)).filter(n => !isNaN(n));
+  const width = Math.max(...pool.map(x => x.code.length - prefix.length), 3);
+  const code = prefix + String(Math.max(0, ...nums) + 1).padStart(width, "0");
+  state.created = state.created || {};
+  (state.created[r.type] = state.created[r.type] || []).push({code, name: r.name, entity: r.entity, country: r.country, reg_no: (r.values || {}).registration_no || ""});
+  r.status = "Completed"; r.sap = code;
+  r.log.push([now(), state.user.display_name, "MDM Analyst", "SAP handoff complete (" + code + ")"]);
+  toast("Created in SAP B1 (mock): " + code, r.requestor + " has been notified that the record is ready to use.");
+  render();
+}
+
+// ---------- About ----------
+function renderAbout() {
+  document.getElementById("content").innerHTML = `<div class="card">
+    <h2>How this works in production</h2>
+    <p class="sub">This page is a mock-up for the competition. Our team has no Power Apps licence, so the form logic is shown here on synthetic data.</p>
+    <div class="flow">
+      <div><b>1. Power Apps form in Teams</b>Type-specific fields, required rules, live duplicate check</div>
+      <div><b>2. SharePoint list</b>Stores each request; sensitive fields in a Finance-only list</div>
+      <div><b>3. Power Automate</b>Routes approvals by rule; reminders after 48 h</div>
+      <div><b>4. Teams / Outlook</b>Approvers approve in one click; full audit trail</div>
+      <div><b>5. SAP B1</b>MDM analyst creates the record; requestor is notified</div>
+    </div>
+    <h3>What is real in this mock-up</h3>
+    <ul>
+      <li>Master data, users and approval routes come from our team data package (customers, items, vendors, cost_centers, users_and_roles, approval_rules).</li>
+      <li>The duplicate check uses the same algorithm as our Python prototype: on the seeded test data it finds all 11 alias customers with 0 false alarms, and all 3 duplicate item codes.</li>
+      <li>Field rules (labels, required, "required if", Finance-only) are a table, so the MDM team can change them without IT.</li>
+    </ul>
+    <h3>Try it</h3>
+    <ol>
+      <li>Customer: type "KL Medical Center 2" - submit is blocked by a likely duplicate.</li>
+      <li>Item: choose category "Diagnostic reagent" - shelf life and licence number become required.</li>
+      <li>Submit a request, then sign in as the approver shown and approve it in the Approvals tab.</li>
+      <li>Sign in as Priya Shah (MDM Analyst) to create the record in SAP B1 - it gets the next code, e.g. I014.</li>
+    </ol></div>`;
+}
+
+// ---------- shell ----------
+function render() {
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab === state.tab));
+  const n = waitingOnMe().length, badge = document.getElementById("apbadge");
+  badge.hidden = !n; badge.textContent = n;
+  ({new: renderNew, mine: renderMine, approvals: renderApprovals, about: renderAbout})[state.tab]();
+}
+
+const who = document.getElementById("who");
+who.innerHTML = DATA.users.map((u, i) => `<option value="${i}">${esc(u.display_name)} - ${esc(u.role)}</option>`).join("");
+who.onchange = () => {
+  state.user = DATA.users[who.value];
+  document.getElementById("avatar").textContent = state.user.display_name.split(" ").map(s => s[0]).join("").slice(0, 2);
+  render();
+};
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
+render();
+</script>
+</body>
+</html>
