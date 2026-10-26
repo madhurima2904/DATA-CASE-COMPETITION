@@ -14,7 +14,7 @@ st.set_page_config(page_title="Demand Exception Report", layout="wide")
 # CONFIG
 # ==========================================================
 
-DATA_DIR = Path(__file__).resolve().parent / "data" / "raw"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
 K = 1.5          # band width in standard deviations
 WINDOW = 6       # moving-average window (months)
 MIN_HIST = 3     # minimum prior months needed for a prediction
