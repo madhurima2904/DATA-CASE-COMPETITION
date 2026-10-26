@@ -2,3 +2,6 @@ __pycache__/
 .venv/
 data/demo/
 outputs/
+
+data/demo_backups/
+data/processed/*.sqlite3
