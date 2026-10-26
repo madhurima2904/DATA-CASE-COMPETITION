@@ -1,37 +1,37 @@
-request_id,submitted_at,request_type,record_name,requestor,country,entity,status,current_step,candidate_existing_id,notes
-R001,2026-09-01T00:00,Customer,New Medical Buyer 1,Employee 1,Singapore,SPD,Completed,Finalized,,
-R002,2026-09-02T01:00,Item,New Lab Test Item 2,Employee 2,Malaysia,QTS,Approved - SAP pending,SAP handoff,,
-R003,2026-09-03T02:00,Vendor,New Diagnostic Vendor 3,Employee 3,Thailand,QTG,Pending approval,Finance review,,
-R004,2026-09-04T03:00,Cost Center,New Regional Sales Center 4,Employee 4,Indonesia,SPD,Returned for correction,Correction requested,,
-R005,2026-09-05T04:00,Customer,New Medical Buyer 5,Employee 5,Vietnam,QTS,Rejected,Closed,,
-R006,2026-09-06T05:00,Item,New Lab Test Item 6,Employee 6,Singapore,QTG,Completed,Finalized,,
-R007,2026-09-07T06:00,Vendor,New Diagnostic Vendor 7,Employee 7,Malaysia,SPD,Approved - SAP pending,SAP handoff,,
-R008,2026-09-08T07:00,Cost Center,New Regional Sales Center 8,Employee 8,Thailand,QTS,Pending approval,Finance review,,
-R009,2026-09-09T00:00,Customer,New Medical Buyer 9,Employee 9,Indonesia,QTG,Returned for correction,Correction requested,,
-R010,2026-09-10T01:00,Item,New Lab Test Item 10,Employee 1,Vietnam,SPD,Rejected,Closed,,
-R011,2026-09-11T02:00,Vendor,New Diagnostic Vendor 11,Employee 2,Singapore,QTS,Completed,Finalized,C001,Potential duplicate: confirm legal identifier
-R012,2026-09-12T03:00,Cost Center,New Regional Sales Center 12,Employee 3,Malaysia,QTG,Approved - SAP pending,SAP handoff,,
-R013,2026-09-13T04:00,Customer,New Medical Buyer 13,Employee 4,Thailand,SPD,Pending approval,Finance review,,
-R014,2026-09-14T05:00,Item,New Lab Test Item 14,Employee 5,Indonesia,QTS,Returned for correction,Correction requested,,
-R015,2026-09-15T06:00,Vendor,New Diagnostic Vendor 15,Employee 6,Vietnam,QTG,Rejected,Closed,,
-R016,2026-09-16T07:00,Cost Center,New Regional Sales Center 16,Employee 7,Singapore,SPD,Completed,Finalized,,
-R017,2026-09-17T00:00,Customer,New Medical Buyer 17,Employee 8,Malaysia,QTS,Approved - SAP pending,SAP handoff,,
-R018,2026-09-18T01:00,Item,New Lab Test Item 18,Employee 9,Thailand,QTG,Pending approval,Finance review,,
-R019,2026-09-19T02:00,Vendor,New Diagnostic Vendor 19,Employee 1,Indonesia,SPD,Returned for correction,Correction requested,,
-R020,2026-09-20T03:00,Cost Center,New Regional Sales Center 20,Employee 2,Vietnam,QTS,Rejected,Closed,,
-R021,2026-09-21T04:00,Customer,New Medical Buyer 21,Employee 3,Singapore,QTG,Completed,Finalized,,
-R022,2026-09-22T05:00,Item,New Lab Test Item 22,Employee 4,Malaysia,SPD,Approved - SAP pending,SAP handoff,C017,Potential duplicate: confirm legal identifier
-R023,2026-09-23T06:00,Vendor,New Diagnostic Vendor 23,Employee 5,Thailand,QTS,Pending approval,Finance review,,
-R024,2026-09-24T07:00,Cost Center,New Regional Sales Center 24,Employee 6,Indonesia,QTG,Returned for correction,Correction requested,,
-R025,2026-09-25T00:00,Customer,New Medical Buyer 25,Employee 7,Vietnam,SPD,Rejected,Closed,,
-R026,2026-09-26T01:00,Item,New Lab Test Item 26,Employee 8,Singapore,QTS,Completed,Finalized,,
-R027,2026-09-27T02:00,Vendor,New Diagnostic Vendor 27,Employee 9,Malaysia,QTG,Approved - SAP pending,SAP handoff,,
-R028,2026-09-28T03:00,Cost Center,New Regional Sales Center 28,Employee 1,Thailand,SPD,Pending approval,Finance review,,
-R029,2026-09-29T04:00,Customer,New Medical Buyer 29,Employee 2,Indonesia,QTS,Returned for correction,Correction requested,,
-R030,2026-09-30T05:00,Item,New Lab Test Item 30,Employee 3,Vietnam,QTG,Rejected,Closed,,
-R031,2026-09-01T06:00,Vendor,New Diagnostic Vendor 31,Employee 4,Singapore,SPD,Completed,Finalized,,
-R032,2026-09-02T07:00,Cost Center,New Regional Sales Center 32,Employee 5,Malaysia,QTS,Approved - SAP pending,SAP handoff,,
-R033,2026-09-03T00:00,Customer,New Medical Buyer 33,Employee 6,Thailand,QTG,Pending approval,Finance review,,
-R034,2026-09-04T01:00,Item,New Lab Test Item 34,Employee 7,Indonesia,SPD,Returned for correction,Correction requested,,
-R035,2026-09-05T02:00,Vendor,New Diagnostic Vendor 35,Employee 8,Vietnam,QTS,Rejected,Closed,,
-R036,2026-09-06T03:00,Cost Center,New Regional Sales Center 36,Employee 9,Singapore,QTG,Completed,Finalized,,
+request_id,submitted_at,request_type,record_name,requestor,country,entity,status,current_step,candidate_existing_id,notes,bank_account,credit_terms
+R001,2026-09-01T00:00,Customer,New Medical Buyer 1,Employee 1,Singapore,SPD,Completed,Finalized,,,,Net 30
+R002,2026-09-02T01:00,Item,New Lab Test Item 2,Employee 2,Malaysia,QTS,Approved - SAP pending,SAP handoff,,,,
+R003,2026-09-03T02:00,Vendor,New Diagnostic Vendor 3,Employee 3,Thailand,QTG,Pending approval,Finance review,,,DBS 012-345678-9 (demo),Net 30
+R004,2026-09-04T03:00,Cost Center,New Regional Sales Center 4,Employee 4,Indonesia,SPD,Returned for correction,Correction requested,,,,
+R005,2026-09-05T04:00,Customer,New Medical Buyer 5,Employee 5,Vietnam,QTS,Rejected,Closed,,,,Net 30
+R006,2026-09-06T05:00,Item,New Lab Test Item 6,Employee 6,Singapore,QTG,Completed,Finalized,,,,
+R007,2026-09-07T06:00,Vendor,New Diagnostic Vendor 7,Employee 7,Malaysia,SPD,Approved - SAP pending,SAP handoff,,,DBS 012-345678-9 (demo),Net 30
+R008,2026-09-08T07:00,Cost Center,New Regional Sales Center 8,Employee 8,Thailand,QTS,Pending approval,Finance review,,,,
+R009,2026-09-09T00:00,Customer,New Medical Buyer 9,Employee 9,Indonesia,QTG,Returned for correction,Correction requested,,,,Net 30
+R010,2026-09-10T01:00,Item,New Lab Test Item 10,Employee 1,Vietnam,SPD,Rejected,Closed,,,,
+R011,2026-09-11T02:00,Vendor,New Diagnostic Vendor 11,Employee 2,Singapore,QTS,Completed,Finalized,C001,Potential duplicate: confirm legal identifier,DBS 012-345678-9 (demo),Net 30
+R012,2026-09-12T03:00,Cost Center,New Regional Sales Center 12,Employee 3,Malaysia,QTG,Approved - SAP pending,SAP handoff,,,,
+R013,2026-09-13T04:00,Customer,New Medical Buyer 13,Employee 4,Thailand,SPD,Pending approval,Finance review,,,,Net 30
+R014,2026-09-14T05:00,Item,New Lab Test Item 14,Employee 5,Indonesia,QTS,Returned for correction,Correction requested,,,,
+R015,2026-09-15T06:00,Vendor,New Diagnostic Vendor 15,Employee 6,Vietnam,QTG,Rejected,Closed,,,DBS 012-345678-9 (demo),Net 30
+R016,2026-09-16T07:00,Cost Center,New Regional Sales Center 16,Employee 7,Singapore,SPD,Completed,Finalized,,,,
+R017,2026-09-17T00:00,Customer,New Medical Buyer 17,Employee 8,Malaysia,QTS,Approved - SAP pending,SAP handoff,,,,Net 30
+R018,2026-09-18T01:00,Item,New Lab Test Item 18,Employee 9,Thailand,QTG,Pending approval,Finance review,,,,
+R019,2026-09-19T02:00,Vendor,New Diagnostic Vendor 19,Employee 1,Indonesia,SPD,Returned for correction,Correction requested,,,DBS 012-345678-9 (demo),Net 30
+R020,2026-09-20T03:00,Cost Center,New Regional Sales Center 20,Employee 2,Vietnam,QTS,Rejected,Closed,,,,
+R021,2026-09-21T04:00,Customer,New Medical Buyer 21,Employee 3,Singapore,QTG,Completed,Finalized,,,,Net 30
+R022,2026-09-22T05:00,Item,New Lab Test Item 22,Employee 4,Malaysia,SPD,Approved - SAP pending,SAP handoff,C017,Potential duplicate: confirm legal identifier,,
+R023,2026-09-23T06:00,Vendor,New Diagnostic Vendor 23,Employee 5,Thailand,QTS,Pending approval,Finance review,,,DBS 012-345678-9 (demo),Net 30
+R024,2026-09-24T07:00,Cost Center,New Regional Sales Center 24,Employee 6,Indonesia,QTG,Returned for correction,Correction requested,,,,
+R025,2026-09-25T00:00,Customer,New Medical Buyer 25,Employee 7,Vietnam,SPD,Rejected,Closed,,,,Net 30
+R026,2026-09-26T01:00,Item,New Lab Test Item 26,Employee 8,Singapore,QTS,Completed,Finalized,,,,
+R027,2026-09-27T02:00,Vendor,New Diagnostic Vendor 27,Employee 9,Malaysia,QTG,Approved - SAP pending,SAP handoff,,,DBS 012-345678-9 (demo),Net 30
+R028,2026-09-28T03:00,Cost Center,New Regional Sales Center 28,Employee 1,Thailand,SPD,Pending approval,Finance review,,,,
+R029,2026-09-29T04:00,Customer,New Medical Buyer 29,Employee 2,Indonesia,QTS,Returned for correction,Correction requested,,,,Net 30
+R030,2026-09-30T05:00,Item,New Lab Test Item 30,Employee 3,Vietnam,QTG,Rejected,Closed,,,,
+R031,2026-09-01T06:00,Vendor,New Diagnostic Vendor 31,Employee 4,Singapore,SPD,Completed,Finalized,,,DBS 012-345678-9 (demo),Net 30
+R032,2026-09-02T07:00,Cost Center,New Regional Sales Center 32,Employee 5,Malaysia,QTS,Approved - SAP pending,SAP handoff,,,,
+R033,2026-09-03T00:00,Customer,New Medical Buyer 33,Employee 6,Thailand,QTG,Pending approval,Finance review,,,,Net 30
+R034,2026-09-04T01:00,Item,New Lab Test Item 34,Employee 7,Indonesia,SPD,Returned for correction,Correction requested,,,,
+R035,2026-09-05T02:00,Vendor,New Diagnostic Vendor 35,Employee 8,Vietnam,QTS,Rejected,Closed,,,DBS 012-345678-9 (demo),Net 30
+R036,2026-09-06T03:00,Cost Center,New Regional Sales Center 36,Employee 9,Singapore,QTG,Completed,Finalized,,,,
