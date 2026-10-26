@@ -5,7 +5,7 @@ from datetime import datetime
 
 # ---------- File locations ----------
 HERE = os.path.dirname(os.path.abspath(__file__))
-RULES = os.path.join(HERE, "data/demo/approval_rules.csv")       # demo copy, editable in the Admin tab
+RULES = os.path.join(HERE, "mdm_request_form/request_form/config/approval_matrix.csv")  # ONE rules file, shared with the form
 LOGS = os.path.join(HERE, "data/demo/approval_logs.csv")
 REQUESTS = os.path.join(HERE, "data/demo/mdm_requests.csv")
 RULES_HISTORY = os.path.join(HERE, "data/demo/rules_history")    # every old version of the rules
@@ -25,9 +25,9 @@ LOG_COLS = ["event_id", "request_id", "event_time", "actor", "actor_role", "acti
 def ensure_demo_data():
     """Create data/demo from data/raw the first time (same as reset_demo.sh)."""
     raw = os.path.join(HERE, "data/raw")
-    os.makedirs(os.path.dirname(RULES), exist_ok=True)
+    os.makedirs(os.path.join(HERE, "data/demo"), exist_ok=True)
     for name in ["approval_logs.csv", "mdm_requests.csv", "approval_rules.csv"]:
-        target = os.path.join(os.path.dirname(RULES), name)
+        target = os.path.join(HERE, "data/demo", name)
         if not os.path.exists(target):
             shutil.copy(os.path.join(raw, name), target)
 

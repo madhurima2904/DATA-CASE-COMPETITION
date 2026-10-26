@@ -5,4 +5,5 @@ rm -rf data/demo/rules_history
 # Request form demo output and the mock SAP handoff history
 rm -f mdm_request_form/request_form/data/new_*.csv
 rm -f data/processed/mock_sap_handoffs.sqlite3
+cp mdm_request_form/request_form/config/approval_matrix_baseline.csv mdm_request_form/request_form/config/approval_matrix.csv
 echo "Demo data reset."
