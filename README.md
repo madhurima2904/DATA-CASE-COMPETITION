@@ -58,10 +58,7 @@ cd <repository-folder>
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pip install xgboost lightgbm       # required by the forecast page; see note below
 ```
-
-> **Note:** `demand_forecast.py` imports `xgboost` and `lightgbm`, which are not yet listed in `requirements.txt`. Add them there to make installation a single step. `rapidfuzz` is listed but not currently used; duplicate matching uses Python's standard `difflib.SequenceMatcher`.
 
 ---
 
@@ -137,8 +134,5 @@ This is a prototype built for a case competition. The following parts are simula
 
 ## Team
 
-Team LivesFlow, SMU DSA Society 2026 Data Case Competition.
+Team Hamster, SMU DSA Society 2026 Data Case Competition.
 
-## Licence
-
-[INSERT licence, or remove this section]
