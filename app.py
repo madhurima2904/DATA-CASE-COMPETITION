@@ -24,9 +24,7 @@ st.markdown(
     """
     <style>
 
-    /* ======================================================
-       MAIN DASHBOARD
-    ====================================================== */
+    /* Main dashboard background */
 
     [data-testid="stAppViewContainer"],
     [data-testid="stMain"] {
@@ -51,7 +49,7 @@ st.markdown(
 
 
     /* ======================================================
-       NAVY SIDEBAR
+       SIDEBAR BACKGROUND
     ====================================================== */
 
     [data-testid="stSidebar"],
@@ -65,7 +63,7 @@ st.markdown(
 
 
     /* ======================================================
-       LIVESFLOW LOGO AT THE TOP OF NAVIGATION
+       LIVESFLOW BRANDING ABOVE NAVIGATION
     ====================================================== */
 
     [data-testid="stSidebarNav"] {
@@ -73,7 +71,7 @@ st.markdown(
         padding-top: 118px !important;
     }
 
-    /* "Lives" — white */
+    /* Lives — white */
 
     [data-testid="stSidebarNav"]::before {
         content: "Lives";
@@ -95,7 +93,7 @@ st.markdown(
         pointer-events: none;
     }
 
-    /* "Flow" — pastel blue */
+    /* Flow — pastel blue */
 
     [data-testid="stSidebarNav"]::after {
         content: "Flow";
@@ -135,7 +133,7 @@ st.markdown(
 
 
     /* ======================================================
-       SIDEBAR NAVIGATION
+       NAVIGATION LINKS
     ====================================================== */
 
     [data-testid="stSidebarNav"] a {
@@ -145,15 +143,21 @@ st.markdown(
     }
 
     [data-testid="stSidebarNav"] a,
-    [data-testid="stSidebarNav"] a *,
+    [data-testid="stSidebarNav"] a span,
+    [data-testid="stSidebarNav"] a p,
+    [data-testid="stSidebarNav"] a div,
     [data-testid="stSidebarNav"] a svg {
         color: #e8eef8 !important;
         fill: #e8eef8 !important;
     }
 
+    /* Hover */
+
     [data-testid="stSidebarNav"] a:hover {
         background-color: #263b57 !important;
     }
+
+    /* Selected page */
 
     [data-testid="stSidebarNav"]
     a[aria-current="page"],
@@ -172,35 +176,7 @@ st.markdown(
         font-weight: 650 !important;
     }
 
-
-    /* ======================================================
-       REMOVE DUPLICATE DECORATIVE SIDEBAR SECTIONS
-
-       Hide old branding and page descriptions that are
-       rendered below the navigation by individual pages.
-
-       Do not hide functional inputs or filters.
-    ====================================================== */
-
-    [data-testid="stSidebar"]
-    [data-testid="stMarkdownContainer"]:has(.livesflow-logo) {
-        display: none !important;
-    }
-
-    [data-testid="stSidebar"]
-    [data-testid="stMarkdownContainer"]:has(.livesflow-subtitle) {
-        display: none !important;
-    }
-
-    /* Hide old sidebar logo markup from previous designs */
-
-    [data-testid="stSidebar"]
-    [data-testid="stMarkdownContainer"]:has(h2)
-    {
-        /* Other headings remain visible by default. */
-    }
-
-    /* Ensure sidebar text and functional controls are readable */
+    /* Sidebar text */
 
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] label,
@@ -214,7 +190,7 @@ st.markdown(
 
 
     /* ======================================================
-       MOBILE
+       NARROW SCREENS
     ====================================================== */
 
     @media (max-width: 768px) {
@@ -259,10 +235,12 @@ if forecast_page.exists():
     )
 
 
-# Regional Analytics
-regional_page = ROOT / "pages" / "regional_analytics.py"
+# ------------------------------------------------------------
+# 1. REGIONAL ANALYTICS
+# ------------------------------------------------------------
 
-if regional_page.exists():
+if (ROOT / "pages" / "regional_analytics.py").exists():
+
     pages.append(
         st.Page(
             "pages/regional_analytics.py",
@@ -273,10 +251,27 @@ if regional_page.exists():
     )
 
 
-# Demand Exception Report
-exception_page = ROOT / "pages" / "exception_dashboard.py"
+# ------------------------------------------------------------
+# 2. DEMAND FORECASTING
+# ------------------------------------------------------------
 
-if exception_page.exists():
+if (ROOT / "pages" / "demand_forecast.py").exists():
+
+    pages.append(
+        st.Page(
+            "pages/demand_forecast.py",
+            title="Demand Forecasting",
+            icon=":material/trending_up:",
+        )
+    )
+
+
+# ------------------------------------------------------------
+# 3. DEMAND EXCEPTION REPORT
+# ------------------------------------------------------------
+
+if (ROOT / "pages" / "exception_dashboard.py").exists():
+
     pages.append(
         st.Page(
             "pages/exception_dashboard.py",
@@ -286,10 +281,12 @@ if exception_page.exists():
     )
 
 
-# Master Data Records
-master_page = ROOT / "pages" / "master_data_records.py"
+# ------------------------------------------------------------
+# 4. MASTER DATA RECORDS
+# ------------------------------------------------------------
 
-if master_page.exists():
+if (ROOT / "pages" / "master_data_records.py").exists():
+
     pages.append(
         st.Page(
             "pages/master_data_records.py",
@@ -300,18 +297,21 @@ if master_page.exists():
 
 
 # ============================================================
-# START NAVIGATION
+# START DASHBOARD
 # ============================================================
 
 if pages:
+
     navigation = st.navigation(
         pages,
         position="sidebar",
     )
+
     navigation.run()
 
 else:
+
     st.error(
-        "No dashboard pages found. "
-        "Please check the pages folder."
+        "No dashboard pages were found. "
+        "Please check your pages folder."
     )

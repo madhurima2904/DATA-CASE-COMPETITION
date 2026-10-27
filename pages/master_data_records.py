@@ -57,6 +57,16 @@ FORM_DATA = (
     / "data"
 )
 
+
+# Reuse the request form's SAP handoff so approved form requests get a real
+# master record (e.g. I014) in new_<file>.csv instead of only a mock reference.
+import sys
+sys.path.insert(0, str(FORM_DATA.parent))
+try:
+    import mdm as request_form_logic
+except Exception:
+    request_form_logic = None
+
 PROCESSED = ROOT / "data" / "processed"
 DATABASE = PROCESSED / "mock_sap_handoffs.sqlite3"
 
@@ -329,9 +339,8 @@ def normalize(value):
 
 
 def now():
-    return datetime.now(
-        timezone.utc
-    ).isoformat(timespec="seconds")
+    # Local time without offset, matching the request form and approval logs
+    return datetime.now().isoformat(timespec="minutes")
 
 
 def read_csv(path, columns=None):
@@ -1049,6 +1058,27 @@ def save_handoff(
     mock_code = (
         f"MOCK-{prefix}-{request_id}"
     )
+
+    with db_connection() as conn:
+        already_done = conn.execute(
+            "SELECT 1 FROM handoffs WHERE request_id = ?",
+            (request_id,),
+        ).fetchone()
+
+    if already_done:
+        return False
+
+    if (
+        clean(record.get("source", "")) == "Request Form"
+        and request_form_logic is not None
+    ):
+        new_code = request_form_logic.create_master_record(
+            request_id,
+            record_type,
+        )
+
+        if new_code:
+            mock_code = new_code
 
     request_payload = {
         "requestId": request_id,

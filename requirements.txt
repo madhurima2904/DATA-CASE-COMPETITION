@@ -3,5 +3,10 @@ pandas>=2.1,<3
 plotly>=5.18,<7
 scikit-learn>=1.5,<2
 rapidfuzz>=3.0,<4
+<<<<<<< HEAD
 xgboost
 lightgbm
+=======
+lightgbm
+xgboost
+>>>>>>> 00a797db31af738d907eb3a343cd9dd0bee81199
