@@ -450,10 +450,6 @@ with st.container(border=True):
 # FLAGGED SERIES TABLE
 # ==========================================================
 
-# ==========================================================
-# FLAGGED SERIES TABLE
-# ==========================================================
-
 with st.container(border=True):
     section_title(f"Flagged Series, {month}")
 
