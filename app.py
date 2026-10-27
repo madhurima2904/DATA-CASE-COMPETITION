@@ -222,19 +222,6 @@ st.markdown(
 
 pages = []
 
-# Demand Forecast
-forecast_page = ROOT / "pages" / "demand_forecast.py"
-
-if forecast_page.exists():
-    pages.append(
-        st.Page(
-            "pages/demand_forecast.py",
-            title="Demand Forecast",
-            icon=":material/trending_up:",
-        )
-    )
-
-
 # ------------------------------------------------------------
 # 1. REGIONAL ANALYTICS
 # ------------------------------------------------------------
