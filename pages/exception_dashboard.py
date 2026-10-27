@@ -14,17 +14,14 @@ st.set_page_config(page_title="Demand Exception Report", layout="wide")
 # CONFIG
 # ==========================================================
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data/raw"
 K = 1.5          # band width in standard deviations
-WINDOW = 6       # moving-average window (months)
+WINDOW = 6       # rolling window for the regression input and enquiry baseline (months)
 MIN_HIST = 3     # minimum prior months needed for a prediction
 
 C_ACTUAL = "#386FE5"
-C_MA = "#2BAFA9"
 C_LR = "#8980DA"
 C_FLAG = "#E5484D"
-
-
 # ==========================================================
 # PAGE DESIGN (matches regional_analytics.py)
 # ==========================================================
@@ -235,18 +232,23 @@ def build_dataset():
     md["lag1"] = g.shift(1)
     md["lag2"] = g.shift(2)
     md["lag3"] = g.shift(3)
+    # Rolling mean used only as a regression input
     md["roll6"] = g.transform(
         lambda s: s.shift(1).rolling(WINDOW, min_periods=MIN_HIST).mean()
     )
     md["month_num"] = pd.to_datetime(md["month"]).dt.month
 
-    # Baseline: 6-month moving average
-    md["ma_pred"] = md["roll6"]
-
-    # Linear regression: walk-forward, trained only on earlier months
-    feats = ["lag1", "lag2", "lag3", "roll6", "month_num"]
+    # Linear regression: walk-forward, trained only on earlier months.
+    # Month dummies replace month_num so December and January are not neighbours.
     feat = md.dropna(subset=["lag1", "lag2", "lag3"]).copy()
-    X = pd.get_dummies(feat[feats + keys], columns=keys, dtype=int)
+    series_d = pd.get_dummies(feat[keys], dtype=int)
+    month_d = pd.get_dummies(feat["month_num"], prefix="m", dtype=int).reindex(
+        columns=[f"m_{i}" for i in range(1, 13)], fill_value=0
+    )
+    X = pd.concat(
+        [feat[["lag1", "lag2", "lag3", "roll6"]], month_d, series_d],
+        axis=1,
+    )
     y = feat["confirmed_units"]
     feat["lr_pred"] = np.nan
     for m in sorted(feat["month"].unique()):
@@ -259,13 +261,12 @@ def build_dataset():
     md["lr_pred"] = feat["lr_pred"]
 
     # Bands: sigma from residuals of PRIOR months only
-    for name in ["ma", "lr"]:
-        md[f"{name}_resid"] = md["confirmed_units"] - md[f"{name}_pred"]
-        md[f"{name}_sigma"] = md.groupby(keys)[f"{name}_resid"].transform(
-            lambda s: s.shift(1).expanding(min_periods=MIN_HIST).std()
-        )
-        md[f"{name}_lower"] = md[f"{name}_pred"] - K * md[f"{name}_sigma"]
-        md[f"{name}_upper"] = md[f"{name}_pred"] + K * md[f"{name}_sigma"]
+    md["lr_resid"] = md["confirmed_units"] - md["lr_pred"]
+    md["lr_sigma"] = md.groupby(keys)["lr_resid"].transform(
+        lambda s: s.shift(1).expanding(min_periods=MIN_HIST).std()
+    )
+    md["lr_lower"] = md["lr_pred"] - K * md["lr_sigma"]
+    md["lr_upper"] = md["lr_pred"] + K * md["lr_sigma"]
 
     # Enquiry spikes on a full monthly grid (zeros where none)
     enq = (
@@ -299,20 +300,15 @@ def build_dataset():
     )
     md["enq_flag"] = md["enq_flag"].fillna(False).astype(bool)
 
-    # Exception flag: outside band OR enquiry spike
-    for name in ["ma", "lr"]:
-        outside = (
-            (md["confirmed_units"] < md[f"{name}_lower"])
-            | (md["confirmed_units"] > md[f"{name}_upper"])
-        )
-        md[f"{name}_breach"] = outside
-        md[f"{name}_flag"] = outside | md["enq_flag"]
+    # Exception flag: outside LR band OR enquiry spike
+    md["lr_breach"] = (
+        (md["confirmed_units"] < md["lr_lower"])
+        | (md["confirmed_units"] > md["lr_upper"])
+    )
+    md["lr_flag"] = md["lr_breach"] | md["enq_flag"]
 
     return md, keys
-
-
 md, keys = build_dataset()
-
 
 def series_label(frame):
     return frame[keys].astype(str).agg(" | ".join, axis=1)
@@ -398,34 +394,33 @@ if month_df.empty:
 # KPI CARDS
 # ==========================================================
 
-scored = month_df[month_df["ma_pred"].notna() & month_df["lr_pred"].notna()]
+scored = month_df[month_df["lr_pred"].notna()]
+lr_mae = (
+    (scored["confirmed_units"] - scored["lr_pred"]).abs().mean()
+    if len(scored) else np.nan
+)
 
-ma_mae = (scored["confirmed_units"] - scored["ma_pred"]).abs().mean() if len(scored) else np.nan
-lr_mae = (scored["confirmed_units"] - scored["lr_pred"]).abs().mean() if len(scored) else np.nan
-
-k1, k2, k3, k4, k5 = st.columns(5)
+k1, k2, k3 = st.columns(3)
 k1.metric("Series", len(month_df))
-k2.metric("Flagged (MA6)", int(month_df["ma_flag"].sum()))
-k3.metric("Flagged (LR)", int(month_df["lr_flag"].sum()))
-k4.metric("MAE, MA6", "—" if pd.isna(ma_mae) else f"{ma_mae:,.1f}")
-k5.metric("MAE, LR", "—" if pd.isna(lr_mae) else f"{lr_mae:,.1f}")
+k2.metric("Flagged", int(month_df["lr_flag"].sum()))
+k3.metric("Enquiry spikes", int(month_df["enq_flag"].sum()))
 
 
 # ==========================================================
-# FORECAST DOT CHARTS
+# FORECAST CHART
 # ==========================================================
 
-def forecast_bars(name, model_label, color):
-    view = month_df[month_df[f"{name}_pred"].notna()].copy()
+def forecast_bars():
+    view = month_df[month_df["lr_pred"].notna()].copy()
     if hide_flagged:
-        view = view[~view[f"{name}_flag"]]
+        view = view[~view["lr_flag"]]
     if view.empty:
         st.info("No series to show after removing flagged series.")
         return
 
     view = view.sort_values("label")
-    x = view["label"] + np.where(view[f"{name}_flag"], "*", "")
-    err = (K * view[f"{name}_sigma"]).fillna(0).tolist()
+    x = view["label"] + np.where(view["lr_flag"], "*", "")
+    err = (K * view["lr_sigma"]).fillna(0).tolist()
 
     fig = go.Figure()
     fig.add_bar(
@@ -433,34 +428,54 @@ def forecast_bars(name, model_label, color):
         name="Actual", marker_color=C_ACTUAL,
     )
     fig.add_bar(
-        x=x, y=view[f"{name}_pred"],
-        name=f"{model_label} forecast", marker_color=color,
+        x=x, y=view["lr_pred"],
+        name="Linear regression forecast", marker_color=C_LR,
         error_y=dict(type="data", array=err, color=C_FLAG, thickness=1.2),
     )
     fig.update_layout(barmode="group")
     fig.update_yaxes(title_text="Units")
     fig.update_xaxes(tickangle=45)
-    show_plot(fig, height=380)
+    show_plot(fig, height=420)
 
-c1, c2 = st.columns(2, gap="large")
 
-with c1:
-    with st.container(border=True):
-        section_title(
-            "6-Month Moving Average",
-            f"Actual vs forecast for {month}. * = flagged. Red bars show ±{K}σ.",
+with st.container(border=True):
+    section_title(
+        "Linear Regression",
+        f"Actual vs forecast for {month}. * = flagged. Red bars show ±{K}σ.",
+    )
+    forecast_bars()
+
+
+# ==========================================================
+# FLAGGED SERIES TABLE
+# ==========================================================
+
+# ==========================================================
+# FLAGGED SERIES TABLE
+# ==========================================================
+
+with st.container(border=True):
+    section_title(f"Flagged Series, {month}")
+
+    flagged = month_df[month_df["lr_flag"]].copy()
+
+    if flagged.empty:
+        st.info("No series flagged for this month.")
+    else:
+        table = pd.DataFrame({
+            "Series": flagged["label"],
+            "Actual Units": flagged["confirmed_units"],
+            "LR Forecast": flagged["lr_pred"],
+            "Outside Band": np.where(flagged["lr_breach"], "Yes", "No"),
+            "Enquiry Spike": np.where(flagged["enq_flag"], "Yes", "No"),
+        })
+        show_table(
+            table,
+            formats={
+                "Actual Units": lambda x: f"{x:,.0f}",
+                "LR Forecast": lambda x: f"{x:,.1f}",
+            },
         )
-        forecast_bars("ma", "6M Moving Avg", C_MA)
-
-with c2:
-    with st.container(border=True):
-        section_title(
-            "Linear Regression",
-            f"Actual vs forecast for {month}. * = flagged. Red bars show ±{K}σ.",
-        )
-        forecast_bars("lr", "Linear Regression", C_LR)
-
-
 
 # ==========================================================
 # TREND FOR ONE SERIES
@@ -526,7 +541,7 @@ with st.container(border=True):
 with st.container(border=True):
     section_title(f"Flagged Series, {month}")
 
-    flagged = month_df[month_df["ma_flag"] | month_df["lr_flag"]].copy()
+    flagged = month_df[month_df["lr_flag"]].copy()
 
     if flagged.empty:
         st.info("No series flagged for this month.")
@@ -534,17 +549,14 @@ with st.container(border=True):
         table = pd.DataFrame({
             "Series": flagged["label"],
             "Actual Units": flagged["confirmed_units"],
-            "MA6 Forecast": flagged["ma_pred"],
             "LR Forecast": flagged["lr_pred"],
-            "MA6 Flag": np.where(flagged["ma_flag"], "Yes", "No"),
-            "LR Flag": np.where(flagged["lr_flag"], "Yes", "No"),
+            "Outside Band": np.where(flagged["lr_breach"], "Yes", "No"),
             "Enquiry Spike": np.where(flagged["enq_flag"], "Yes", "No"),
         })
         show_table(
             table,
             formats={
                 "Actual Units": lambda x: f"{x:,.0f}",
-                "MA6 Forecast": lambda x: f"{x:,.1f}",
                 "LR Forecast": lambda x: f"{x:,.1f}",
             },
         )
