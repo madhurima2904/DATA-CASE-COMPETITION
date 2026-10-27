@@ -10,7 +10,7 @@ LivesFlow is a working prototype for SMU DSA Society 2026 Data Case Competition 
 
 | Area | What the prototype shows |
 |---|---|
-| **Intake and duplicate screening** | Request form checks required fields and runs an automatic duplicate check (similarity of 80% or higher) before an approver sees the request. |
+| **Intake and duplicate screening** | One request form for all four record types (Customer, Vendor, Item, Cost Center) that shows only the fields each type needs, with conditional rules (e.g. Product C items need a licence number). Before an approver sees the request, it checks names and registration numbers against existing records: 80% similarity or higher shows a warning, 90% or higher is blocked unless the requester gives a reason. A request tracker shows each request's approval progress. |
 | **Approvals** | Role-based "Waiting on me" queue for each approver, with the approval chain, SLA, and masked sensitive fields. |
 | **Overdue and escalation** | Reminders at the SLA; escalation at twice the SLA. |
 | **Audit trail** | Append-only log of every action. Rows are added, never edited. |
@@ -38,7 +38,14 @@ Purchase orders and enquiries feed the regional and forecasting views. MDM setup
 ├── approvals_app.py            # Stand-alone approvals app (role selector, Admin tab)
 ├── test_approvals.py           # Scripted walk-through of one request through approvals
 ├── add_demo_sensitive.py       # Adds demo bank and credit columns to the request data
-├── reset_demo.sh               # Restores the demo copies from the raw data
+├── reset_demo.sh               # Resets the demo (form output, approvals copies, handoff database)
+├── reset_demo.bat              # Same as reset_demo.sh, for Windows
+├── mdm_request_form/
+│   └── request_form/
+│       ├── app.py              # Request form app (new request, duplicate check, request tracker, admin)
+│       ├── mdm.py              # Field rules, duplicate matching, approval routing
+│       ├── config/             # field_rules.csv and approval_matrix.csv (shared with the approvals app)
+│       └── data/               # Seed data; new_*.csv files are written here by the form and approvals
 ├── requirements.txt
 └── data/
     ├── raw/                    # Source CSVs (see Data below)
@@ -80,11 +87,27 @@ Before using the approvals app, create the demo copies:
 bash reset_demo.sh
 ```
 
-This copies the approval files from `data/raw/` into `data/demo/`. Run it from the repository root. To add demo bank and credit fields to the request data, run `python add_demo_sensitive.py`.
+On Windows, run `reset_demo.bat` instead. This copies the approval files from `data/raw/` into `data/demo/`, clears requests submitted through the form, restores the shared approval rules, and clears the handoff database. Run it from the repository root. To add demo bank and credit fields to the request data, run `python add_demo_sensitive.py`.
 
 ---
 
 ## Running the app
+
+The prototype is three Streamlit apps that share the same CSV files. Start each one from the repository root in its own terminal:
+
+```bash
+streamlit run mdm_request_form/request_form/app.py                    # Request form, port 8501
+streamlit run approvals_app.py --server.port 8502                     # Approvals
+streamlit run app.py --server.port 8503                               # LivesFlow dashboard
+```
+
+The sections below describe each app.
+
+Request form (new request with duplicate check, request tracker, admin for field rules and routing):
+
+```bash
+streamlit run mdm_request_form/request_form/app.py
+```
 
 Main dashboard (regional analytics, forecast, exceptions, master data):
 
@@ -101,6 +124,15 @@ streamlit run approvals_app.py
 In the approvals app, use the **Signed in as** selector in the sidebar to switch between approvers and see each person's view. Only the MDM Analyst can edit approval rules.
 
 ---
+
+## End-to-end demo (about 5 minutes)
+
+Run `reset_demo.bat` (Windows) or `bash reset_demo.sh`, start the three apps as above, then follow one request:
+
+1. **Request form:** New request, Item. Type `C - Diag Device 3`; it is blocked as a duplicate. Change it to `C - Diagnostic Analyzer 4`, Product C, fill in the rest including the licence number, and submit. The request is `R037`.
+2. **Approvals app:** sign in as Siti Rahman, then Daniel Wong, then Priya Shah, and approve `R037` each time.
+3. **LivesFlow, Master Data Records:** `R037` is first in the queue. Fill in reviewer and notes, tick the box, and save. In Master Data Directory, Item, the new item `I014` is listed.
+4. **Request form, Request tracker:** `R037` shows Completed (3/3) with `I014`.
 
 ## Testing the approval flow
 
